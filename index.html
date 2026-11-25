@@ -1,0 +1,2666 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PSeInt Lab — Entrenador de Algoritmos</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            ide: {
+              bg: '#090d16',
+              panel: '#111827',
+              surface: '#1e293b',
+              border: '#2d3748',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.7);
+    }
+
+    .code-editor-wrapper {
+      position: relative;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    #code-textarea {
+      tab-size: 4;
+      -moz-tab-size: 4;
+      resize: none;
+      outline: none;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+      line-height: 1.65;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .line-numbers {
+      user-select: none;
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    @keyframes subtlePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.45); }
+      50% { box-shadow: 0 0 18px 2px rgba(99, 102, 241, 0.25); }
+    }
+    .btn-glow {
+      animation: subtlePulse 3s infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-ide-bg dark:text-slate-100 font-sans min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- ==================== ENCABEZADO SUPERIOR ==================== -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-ide-panel/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Identidad de la App -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-cyan-500 to-emerald-500 flex items-center justify-center text-white font-mono font-extrabold text-base shadow-lg shadow-indigo-500/20">
+          PS&gt;_
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-cyan-500 to-emerald-500 dark:from-indigo-400 dark:via-cyan-300 dark:to-emerald-300 bg-clip-text text-transparent">
+              PSeInt Lab
+            </h1>
+            <span class="hidden sm:inline-block text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30">
+              Práctica de Examen
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Simulador, Analizador y Retos de Pseudocódigo</p>
+        </div>
+      </div>
+
+      <!-- Progreso del Estudiante -->
+      <div class="hidden lg:flex items-center gap-4 bg-slate-100 dark:bg-slate-800/90 px-4 py-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-500 text-base">✅</span>
+          <div>
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Resueltos</p>
+            <p id="stat-solved" class="text-sm font-bold leading-none">0 / 30</p>
+          </div>
+        </div>
+        <div class="h-6 w-px bg-slate-300 dark:bg-slate-700"></div>
+        <div class="flex items-center gap-2">
+          <span class="text-amber-500 text-base">🔥</span>
+          <div>
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Racha</p>
+            <p id="stat-streak" class="text-sm font-bold leading-none">0</p>
+          </div>
+        </div>
+        <div class="h-6 w-px bg-slate-300 dark:bg-slate-700"></div>
+        <div class="flex items-center gap-2">
+          <span class="text-indigo-500 text-base">🎓</span>
+          <div>
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Rango</p>
+            <p id="stat-rank" class="text-sm font-bold leading-none text-indigo-600 dark:text-indigo-400">Aprendiz</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones del Header -->
+      <div class="flex items-center gap-2">
+        <button id="btn-open-guide" type="button" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-md shadow-indigo-600/20 transition active:scale-95">
+          <span>📚</span>
+          <span>Guía de Estudio</span>
+        </button>
+
+        <button id="btn-share" type="button" title="Copiar código o enlace para compartir" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-medium border border-slate-200 dark:border-slate-700 transition active:scale-95">
+          <span>📋</span>
+          <span class="hidden sm:inline">Copiar Código</span>
+        </button>
+
+        <button id="btn-theme-toggle" type="button" title="Cambiar tema claro/oscuro" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-amber-300 border border-slate-200 dark:border-slate-700 transition active:scale-95">
+          <span id="theme-icon">☀️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra compacta móvil -->
+    <div class="flex lg:hidden items-center justify-around py-1.5 px-3 bg-slate-100/90 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 text-xs">
+      <span>✅ Resueltos: <strong id="stat-solved-mobile">0 / 30</strong></span>
+      <span>🔥 Racha: <strong id="stat-streak-mobile">0</strong></span>
+      <span>🎓 Rango: <strong id="stat-rank-mobile" class="text-indigo-500">Aprendiz</strong></span>
+    </div>
+  </header>
+
+  <!-- Notificaciones flotantes -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
+
+  <!-- ==================== ÁREA PRINCIPAL ==================== -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
+
+    <!-- COLUMNA IZQUIERDA (4 cols): GENERADOR DE EJERCICIOS + ANALIZADOR DE ERRORES -->
+    <section class="lg:col-span-4 flex flex-col gap-4">
+      
+      <!-- Tarjeta: Generador de Ejercicios y Suposiciones -->
+      <div class="bg-white dark:bg-ide-panel rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 bg-gradient-to-r from-indigo-600/10 via-cyan-600/10 to-emerald-600/10 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <h2 class="font-bold text-sm sm:text-base flex items-center gap-2">
+            <span>🎲</span> Generador de Retos
+          </h2>
+          <span id="exercise-counter-badge" class="text-xs font-mono px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
+            30 disponibles
+          </span>
+        </div>
+
+        <div class="p-4 space-y-3">
+          <!-- Filtros de Tema, Nivel y Tipo -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label for="select-topic" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                Tema del Examen
+              </label>
+              <select id="select-topic" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="all">🌟 Todos los temas</option>
+                <option value="secuencial">1. Algoritmo Secuencial</option>
+                <option value="condicional">2. Condicionales (Si / SiNo)</option>
+                <option value="repetitivo">3. Algoritmos Repetitivos</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="select-level" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                Nivel de Dificultad
+              </label>
+              <select id="select-level" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="all">🎯 Todos los niveles</option>
+                <option value="basico">🟢 Básico</option>
+                <option value="intermedio">🟡 Intermedio</option>
+                <option value="avanzado">🔴 Avanzado</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Filtro rápido de Tipo de Ejercicio -->
+          <div>
+            <label for="select-kind" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+              Estilo del Problema
+            </label>
+            <select id="select-kind" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="suposicion" selected>🏪 Suposiciones y Casos Reales ("Supón que...")</option>
+              <option value="all">📚 Todos los estilos (Suposiciones + Clásicos)</option>
+              <option value="clasico">🧮 Lógica Matemática / Clásicos</option>
+            </select>
+          </div>
+
+          <button id="btn-generate" type="button" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-cyan-600 to-emerald-600 hover:from-indigo-500 hover:via-cyan-500 hover:to-emerald-500 text-white font-bold text-sm shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 transition active:scale-[0.99] btn-glow">
+            <span>🎲</span>
+            <span>Nuevo Ejercicio Aleatorio</span>
+          </button>
+
+          <!-- Tarjeta del Enunciado Actual -->
+          <div id="exercise-card" class="mt-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-1.5">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span id="ex-topic-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+                  1. Secuencial
+                </span>
+                <span id="ex-context-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30">
+                  🏪 Tienda de Barrio
+                </span>
+              </div>
+              <span id="ex-level-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                🟢 Básico
+              </span>
+            </div>
+
+            <div class="flex items-start justify-between gap-2">
+              <h3 id="ex-title" class="font-bold text-base text-slate-900 dark:text-white leading-snug">
+                Cargando ejercicio...
+              </h3>
+              <span id="ex-solved-check" class="hidden shrink-0 text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                ✓ Completado
+              </span>
+            </div>
+
+            <p id="ex-description" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              ...
+            </p>
+
+            <!-- Entrada y Salida de Ejemplo -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              <div class="p-2.5 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70">
+                <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">📥 Datos de Entrada</p>
+                <pre id="ex-sample-in" class="text-xs font-mono text-cyan-600 dark:text-cyan-400 whitespace-pre-wrap"></pre>
+              </div>
+              <div class="p-2.5 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70">
+                <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">📤 Salida Esperada</p>
+                <pre id="ex-sample-out" class="text-xs font-mono text-emerald-600 dark:text-emerald-400 whitespace-pre-wrap"></pre>
+              </div>
+            </div>
+
+            <!-- Pista colapsable -->
+            <div id="ex-hint-box" class="hidden p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-xs text-amber-900 dark:text-amber-200">
+              <p class="font-bold mb-1">💡 Pista para resolverlo:</p>
+              <p id="ex-hint-text"></p>
+            </div>
+
+            <!-- Botones del ejercicio -->
+            <div class="flex flex-wrap gap-2 pt-1">
+              <button id="btn-toggle-hint" type="button" class="flex-1 py-2 px-3 rounded-lg bg-amber-100 hover:bg-amber-200 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-semibold transition">
+                💡 Ver Pista
+              </button>
+              <button id="btn-load-template" type="button" class="flex-1 py-2 px-3 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold transition">
+                📝 Cargar Plantilla
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Analizador Automático de Errores y Pistas -->
+      <div class="bg-white dark:bg-ide-panel rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex-1 flex flex-col">
+        <div class="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span>🔍</span>
+            <h2 class="font-bold text-sm">Analizador de Errores y Pistas</h2>
+          </div>
+          <span id="analyzer-status-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+            ✓ Sin errores
+          </span>
+        </div>
+
+        <div class="p-3.5 flex-1 overflow-y-auto max-h-[340px] space-y-2.5" id="diagnostics-list">
+          <!-- Diagnósticos dinámicos -->
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUMNA DERECHA (8 cols): EDITOR + CONSOLA INTERACTIVA + MEMORIA -->
+    <section class="lg:col-span-8 flex flex-col gap-4">
+      
+      <!-- Panel del Editor -->
+      <div class="bg-white dark:bg-ide-panel rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+        
+        <!-- Barra superior del editor -->
+        <div class="px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <div class="flex gap-1.5">
+              <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            </div>
+            <span class="ml-2 text-xs font-mono font-semibold text-slate-600 dark:text-slate-300">
+              algoritmo_practica.psc
+            </span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none" title="Exige declarar variables con Definir antes de usarlas">
+              <input type="checkbox" id="chk-strict-mode" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+              <span>Exigir Definir</span>
+            </label>
+
+            <button id="btn-clear-editor" type="button" class="text-xs px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
+              Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Barra de Atajos Rápidos PSeInt -->
+        <div class="px-3 py-2 bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto">
+          <span class="text-[11px] font-bold text-slate-400 uppercase mr-1 shrink-0">Insertar:</span>
+          <button type="button" data-insert=" <- " class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-mono text-xs font-bold hover:bg-indigo-200 dark:hover:bg-indigo-500/30 transition">&lt;-</button>
+          <button type="button" data-insert="Definir variable Como Entero;" class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Definir</button>
+          <button type="button" data-insert='Escribir "Texto: ";' class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Escribir</button>
+          <button type="button" data-insert="Leer variable;" class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Leer</button>
+          <button type="button" data-insert="Si condicion Entonces&#10;&#9;&#10;SiNo&#10;&#9;&#10;FinSi" class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Si / SiNo</button>
+          <button type="button" data-insert="Segun variable Hacer&#10;&#9;1:&#10;&#9;&#9;&#10;&#9;De Otro Modo:&#10;&#9;&#9;&#10;FinSegun" class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Segun</button>
+          <button type="button" data-insert="Mientras condicion Hacer&#10;&#9;&#10;FinMientras" class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Mientras</button>
+          <button type="button" data-insert="Repetir&#10;&#9;&#10;Hasta Que condicion" class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Repetir</button>
+          <button type="button" data-insert="Para i <- 1 Hasta 10 Con Paso 1 Hacer&#10;&#9;&#10;FinPara" class="quick-btn shrink-0 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Para</button>
+          <button type="button" data-insert=" <> " class="quick-btn shrink-0 px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">&lt;&gt;</button>
+          <button type="button" data-insert=" Y " class="quick-btn shrink-0 px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">Y</button>
+          <button type="button" data-insert=" O " class="quick-btn shrink-0 px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-xs hover:border-indigo-400 transition">O</button>
+        </div>
+
+        <!-- Editor de Texto con Numeración de Líneas -->
+        <div class="code-editor-wrapper flex bg-slate-950 text-slate-100 h-[320px] sm:h-[370px]">
+          <div id="line-numbers" class="line-numbers py-4 px-3 bg-slate-900/95 text-slate-500 border-r border-slate-800 select-none overflow-hidden">
+            1
+          </div>
+          <textarea id="code-textarea" spellcheck="false" autocomplete="off" autocapitalize="off" class="flex-1 py-4 px-4 bg-transparent text-slate-100 caret-cyan-400" placeholder="Escribe aquí tu pseudocódigo en PSeInt..."></textarea>
+        </div>
+
+        <!-- Barra Inferior de Ejecución -->
+        <div class="p-3 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btn-run" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/20 flex items-center gap-2 transition active:scale-95">
+              <span>▶</span>
+              <span>Probar Código</span>
+            </button>
+
+            <button id="btn-stop" type="button" disabled class="px-3 py-2 rounded-xl bg-rose-600/20 text-rose-400 border border-rose-500/30 font-semibold text-xs sm:text-sm flex items-center gap-1.5 disabled:opacity-40 transition">
+              <span>⏹</span>
+              <span>Detener</span>
+            </button>
+
+            <button id="btn-verify" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-600/20 flex items-center gap-2 transition active:scale-95">
+              <span>✅</span>
+              <span>Validar Solución</span>
+            </button>
+          </div>
+
+          <span id="cursor-position" class="text-xs font-mono text-slate-500 dark:text-slate-400">
+            Línea 1, Col 1
+          </span>
+        </div>
+      </div>
+
+      <!-- Consola Interactiva + Tabla de Variables en Memoria -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        
+        <!-- Terminal / Consola (7 cols) -->
+        <div class="md:col-span-7 bg-slate-950 text-slate-100 rounded-2xl border border-slate-800 shadow-sm overflow-hidden flex flex-col h-[280px]">
+          <div class="px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-emerald-400 text-xs">●</span>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Consola de Ejecución</h3>
+            </div>
+            <button id="btn-clear-console" type="button" class="text-[11px] text-slate-400 hover:text-white transition">Limpiar</button>
+          </div>
+
+          <div id="console-output" class="flex-1 p-3.5 font-mono text-xs sm:text-sm overflow-y-auto space-y-1.5">
+            <div class="text-slate-400 italic">Haz clic en "Probar Código" para ejecutar paso a paso o en "Validar Solución" para comprobar tu respuesta automáticamente.</div>
+          </div>
+
+          <!-- Input interactivo para Leer -->
+          <form id="console-input-form" class="hidden p-2.5 bg-slate-900 border-t border-cyan-500/50 flex items-center gap-2">
+            <span class="text-cyan-400 font-mono text-xs font-bold shrink-0" id="console-prompt-label">Leer &gt;</span>
+            <input type="text" id="console-input-field" class="flex-1 bg-slate-950 border border-slate-700 focus:border-cyan-500 rounded-lg px-3 py-1.5 text-xs sm:text-sm font-mono text-white outline-none" placeholder="Escribe el dato y presiona Enter..." autocomplete="off">
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition">
+              Enviar
+            </button>
+          </form>
+        </div>
+
+        <!-- Variables en Memoria (5 cols) -->
+        <div class="md:col-span-5 bg-white dark:bg-ide-panel rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-[280px]">
+          <div class="px-4 py-2 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+              <span>📊</span> Variables en Memoria
+            </h3>
+            <span class="text-[11px] text-slate-400">En vivo</span>
+          </div>
+
+          <div class="flex-1 overflow-y-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase text-slate-400 bg-slate-50 dark:bg-slate-900/50">
+                  <th class="py-2 px-3 font-semibold">Variable</th>
+                  <th class="py-2 px-3 font-semibold">Tipo</th>
+                  <th class="py-2 px-3 font-semibold">Valor</th>
+                </tr>
+              </thead>
+              <tbody id="variables-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/70 font-mono text-xs">
+                <tr>
+                  <td colspan="3" class="py-8 px-3 text-center text-slate-400 font-sans">
+                    Aquí verás cómo cambian tus variables mientras se ejecuta el algoritmo.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MODAL DE GUÍA DE ESTUDIO ==================== -->
+  <div id="guide-modal" class="fixed inset-0 z-50 hidden bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white dark:bg-ide-panel w-full max-w-4xl max-h-[90vh] rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl flex flex-col overflow-hidden">
+      
+      <!-- Header Modal -->
+      <div class="px-5 py-4 bg-gradient-to-r from-indigo-600 via-cyan-600 to-emerald-600 text-white flex items-center justify-between">
+        <div>
+          <h2 class="text-lg sm:text-xl font-extrabold flex items-center gap-2">
+            <span>📘</span> Guía Rápida de PSeInt para el Examen
+          </h2>
+          <p class="text-xs text-cyan-100">Repasa la sintaxis exacta y carga ejemplos funcionales en el editor con un clic.</p>
+        </div>
+        <button id="btn-close-guide" type="button" class="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center text-white font-bold transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Pestañas -->
+      <div class="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 overflow-x-auto">
+        <button type="button" class="guide-tab active px-4 py-3 text-xs sm:text-sm font-bold border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 shrink-0" data-tab="tab-secuencial">
+          1. Secuenciales
+        </button>
+        <button type="button" class="guide-tab px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 shrink-0" data-tab="tab-condicional">
+          2. Condicionales (Si / SiNo)
+        </button>
+        <button type="button" class="guide-tab px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 shrink-0" data-tab="tab-repetitivo">
+          3. Repetitivos (Ciclos)
+        </button>
+        <button type="button" class="guide-tab px-4 py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 shrink-0" data-tab="tab-errores">
+          4. Errores Típicos
+        </button>
+      </div>
+
+      <!-- Contenido Pestañas -->
+      <div class="p-5 overflow-y-auto space-y-4 text-sm text-slate-700 dark:text-slate-300 flex-1">
+        
+        <!-- TAB 1: SECUENCIAL -->
+        <div id="tab-secuencial" class="guide-panel space-y-4">
+          <div class="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30">
+            <h3 class="font-bold text-base text-indigo-900 dark:text-indigo-300 mb-1">1. Algoritmo Secuencial</h3>
+            <p class="text-xs sm:text-sm leading-relaxed">
+              Las instrucciones se ejecutan línea por línea de arriba hacia abajo. Sigue siempre el orden: <strong>1) Definir variables &rarr; 2) Leer datos &rarr; 3) Calcular con &lt;- &rarr; 4) Escribir resultados</strong>.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+              <h4 class="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 mb-2">Tipos de Datos</h4>
+              <ul class="space-y-1.5 text-xs">
+                <li><code class="text-indigo-500 font-bold">Entero</code>: Cantidades exactas (ej. <code>5, 10, -2</code>).</li>
+                <li><code class="text-indigo-500 font-bold">Real</code>: Precios, notas o promedios con decimal (ej. <code>19.5</code>).</li>
+                <li><code class="text-indigo-500 font-bold">Caracter / Cadena</code>: Nombres o mensajes entre comillas (<code>"Hola"</code>).</li>
+                <li><code class="text-indigo-500 font-bold">Logico</code>: <code>Verdadero</code> o <code>Falso</code>.</li>
+              </ul>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+              <h4 class="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 mb-2">Operadores y Funciones</h4>
+              <ul class="space-y-1.5 text-xs font-mono">
+                <li><strong>+ , - , * , /</strong> : Operaciones básicas</li>
+                <li><strong>^</strong> : Potencia (ej. <code>lado ^ 2</code>)</li>
+                <li><strong>MOD</strong> o <strong>%</strong> : Residuo de división entera</li>
+                <li><strong>raiz(x)</strong>, <strong>trunc(x)</strong>, <strong>redon(x)</strong>, <strong>abs(x)</strong></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
+            <div class="px-4 py-2 bg-slate-900 flex items-center justify-between">
+              <span class="text-xs font-mono text-slate-300">Ejemplo Secuencial: Venta en Tienda con 15% de Descuento</span>
+              <button type="button" class="btn-load-example px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition" data-example="secuencial">
+                Probar este ejemplo en el editor &rarr;
+              </button>
+            </div>
+            <pre class="p-4 text-xs font-mono text-slate-200 overflow-x-auto">Algoritmo VentaTienda
+    Definir precio, descuento, totalPagar Como Real;
+    Escribir "Ingrese el precio del producto:";
+    Leer precio;
+    descuento &lt;- precio * 0.15;
+    totalPagar &lt;- precio - descuento;
+    Escribir "Descuento (15%): ", descuento;
+    Escribir "Total a pagar: ", totalPagar;
+FinAlgoritmo</pre>
+          </div>
+        </div>
+
+        <!-- TAB 2: CONDICIONALES -->
+        <div id="tab-condicional" class="guide-panel hidden space-y-4">
+          <div class="p-4 rounded-xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/30">
+            <h3 class="font-bold text-base text-cyan-900 dark:text-cyan-300 mb-1">2. Condicionales (Si - Entonces - SiNo)</h3>
+            <p class="text-xs sm:text-sm leading-relaxed">
+              Permiten tomar decisiones. Si la condición después de <code>Si</code> es verdadera, se ejecuta lo que está debajo de <code>Entonces</code>; si es falsa, se ejecuta el bloque <code>SiNo</code>. También puedes encadenar condiciones con <code>SiNo Si</code>.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+              <h4 class="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 mb-2">Comparadores</h4>
+              <ul class="space-y-1 text-xs font-mono">
+                <li><strong>=</strong> : Igual que (ej. <code>codigo = 1</code>)</li>
+                <li><strong>&lt;&gt;</strong> : Diferente de (ej. <code>opcion &lt;&gt; 0</code>)</li>
+                <li><strong>&lt; , &gt; , &lt;= , &gt;=</strong> : Menor, mayor, menor o igual, mayor o igual</li>
+              </ul>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+              <h4 class="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 mb-2">Conectores Lógicos</h4>
+              <ul class="space-y-1 text-xs">
+                <li><code class="font-bold text-cyan-500">Y</code> : Se deben cumplir las dos condiciones a la vez.</li>
+                <li><code class="font-bold text-cyan-500">O</code> : Basta con que se cumpla al menos una condición.</li>
+                <li><code class="font-bold text-cyan-500">NO</code> : Niega una condición.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
+            <div class="px-4 py-2 bg-slate-900 flex items-center justify-between">
+              <span class="text-xs font-mono text-slate-300">Ejemplo Condicional: Tarifa de Cine por Edad</span>
+              <button type="button" class="btn-load-example px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition" data-example="condicional">
+                Probar este ejemplo en el editor &rarr;
+              </button>
+            </div>
+            <pre class="p-4 text-xs font-mono text-slate-200 overflow-x-auto">Algoritmo TarifaCine
+    Definir edad Como Entero;
+    Escribir "Ingresa la edad del cliente:";
+    Leer edad;
+    Si edad &lt; 12 Entonces
+        Escribir "Boleta Infantil: $8,000";
+    SiNo Si edad &gt;= 60 Entonces
+        Escribir "Boleta Adulto Mayor: $9,000";
+    SiNo
+        Escribir "Boleta General: $15,000";
+    FinSi
+FinAlgoritmo</pre>
+          </div>
+        </div>
+
+        <!-- TAB 3: REPETITIVOS -->
+        <div id="tab-repetitivo" class="guide-panel hidden space-y-4">
+          <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30">
+            <h3 class="font-bold text-base text-emerald-900 dark:text-emerald-300 mb-1">3. Algoritmos Repetitivos (Ciclos)</h3>
+            <p class="text-xs sm:text-sm leading-relaxed">
+              Repiten un grupo de instrucciones múltiples veces. Usa <strong>Contadores</strong> (<code>cont &lt;- cont + 1</code>) y <strong>Acumuladores</strong> (<code>total &lt;- total + precio</code>) inicializados en <code>0</code> antes del ciclo.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <h4 class="font-bold text-emerald-600 dark:text-emerald-400 mb-1">Ciclo PARA</h4>
+              <p class="mb-2">Cuando <strong>conoces el número exacto</strong> de repeticiones.</p>
+              <code class="block bg-slate-900 text-slate-200 p-2 rounded font-mono text-[11px]">Para i &lt;- 1 Hasta N Con Paso 1 Hacer<br>&nbsp;&nbsp;...<br>FinPara</code>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <h4 class="font-bold text-emerald-600 dark:text-emerald-400 mb-1">Ciclo MIENTRAS</h4>
+              <p class="mb-2">Evalúa la condición <strong>al inicio</strong>. Repite mientras sea verdadera.</p>
+              <code class="block bg-slate-900 text-slate-200 p-2 rounded font-mono text-[11px]">Mientras precio &lt;&gt; 0 Hacer<br>&nbsp;&nbsp;...<br>FinMientras</code>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <h4 class="font-bold text-emerald-600 dark:text-emerald-400 mb-1">Ciclo REPETIR</h4>
+              <p class="mb-2">Ejecuta <strong>al menos una vez</strong> y termina cuando la condición sea verdadera.</p>
+              <code class="block bg-slate-900 text-slate-200 p-2 rounded font-mono text-[11px]">Repetir<br>&nbsp;&nbsp;...<br>Hasta Que clave = 1234</code>
+            </div>
+          </div>
+
+          <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
+            <div class="px-4 py-2 bg-slate-900 flex items-center justify-between">
+              <span class="text-xs font-mono text-slate-300">Ejemplo Repetitivo: Caja Registradora de N Productos</span>
+              <button type="button" class="btn-load-example px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition" data-example="repetitivo">
+                Probar este ejemplo en el editor &rarr;
+              </button>
+            </div>
+            <pre class="p-4 text-xs font-mono text-slate-200 overflow-x-auto">Algoritmo CajaRegistradoraEjemplo
+    Definir n, i Como Entero;
+    Definir precio, total Como Real;
+    total &lt;- 0;
+    Escribir "¿Cuántos productos lleva el cliente?";
+    Leer n;
+    Para i &lt;- 1 Hasta n Con Paso 1 Hacer
+        Escribir "Precio del producto #", i, ":";
+        Leer precio;
+        total &lt;- total + precio;
+    FinPara
+    Escribir "Total a pagar: ", total;
+FinAlgoritmo</pre>
+          </div>
+        </div>
+
+        <!-- TAB 4: ERRORES TÍPICOS -->
+        <div id="tab-errores" class="guide-panel hidden space-y-3">
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">🚫 Errores comunes que revisa el Analizador</h3>
+          <div class="space-y-2.5 text-xs">
+            <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30">
+              <p class="font-bold text-rose-700 dark:text-rose-300">1. Olvidar cerrar estructuras</p>
+              <p class="mt-1">Todo <code>Si</code> requiere su <code>FinSi</code>, todo <code>Mientras</code> su <code>FinMientras</code>, todo <code>Para</code> su <code>FinPara</code> y todo <code>Repetir</code> su <code>Hasta Que</code>.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30">
+              <p class="font-bold text-rose-700 dark:text-rose-300">2. No inicializar acumuladores o contadores</p>
+              <p class="mt-1">Antes de hacer <code>total &lt;- total + precio</code>, debes escribir <code>total &lt;- 0;</code> arriba del ciclo.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30">
+              <p class="font-bold text-rose-700 dark:text-rose-300">3. Bucle infinito en Mientras</p>
+              <p class="mt-1">Asegúrate de actualizar dentro del <code>Mientras</code> la variable que controla la condición (ej. volver a <code>Leer</code> o incrementar <code>i &lt;- i + 1</code>).</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SCRIPT PRINCIPAL DE LA APLICACIÓN ==================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /**
+       * =========================================================================
+       * 1. BANCO DE 30 EJERCICIOS (24 SUPOSICIONES REALES + 6 CLÁSICOS)
+       * =========================================================================
+       */
+      const EXERCISES_DB = [
+        // ---------- TEMA 1: ALGORITMO SECUENCIAL (10 EJERCICIOS) ----------
+        {
+          id: 'seq-1',
+          topic: 'secuencial',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '🏪 Tienda de Barrio',
+          title: 'La Tienda de Don Julio (Subtotal e IVA)',
+          description: 'Supón que trabajas en una tienda de barrio y un cliente compra una cantidad de refrescos a un precio unitario. Pide la cantidad (entero) y el precio unitario (real), y muestra primero el subtotal y luego el total a pagar con IVA del 19%.',
+          sampleIn: '4\n2500',
+          sampleOut: 'Subtotal: 10000\nTotal: 11900',
+          hint: 'Define cantidad Como Entero; y precio, subtotal, total Como Real. Calcula subtotal <- cantidad * precio y luego total <- subtotal * 1.19.',
+          template: 'Algoritmo TiendaDonJulio\n\tDefinir cantidad Como Entero;\n\tDefinir precio, subtotal, total Como Real;\n\tEscribir "Cantidad de refrescos:";\n\tLeer cantidad;\n\tEscribir "Precio unitario:";\n\tLeer precio;\n\t// Escribe tus cálculos aquí\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [4, 2500], expectedNumbers: [10000, 11900] },
+            { inputs: [2, 5000], expectedNumbers: [10000, 11900] }
+          ]
+        },
+        {
+          id: 'seq-2',
+          topic: 'secuencial',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '🥖 Panadería',
+          title: 'Panadería El Trigal (Combo Desayuno)',
+          description: 'Supón que administras una panadería donde cada café vale $2,500 y cada pan de bono vale $1,800. Lee cuántos cafés y cuántos panes lleva un cliente y muestra el total a cobrar.',
+          sampleIn: '2\n3',
+          sampleOut: '10400',
+          hint: 'Define cafes, panes, total Como Entero. Multiplica (cafes * 2500) + (panes * 1800) y muéstralo con Escribir.',
+          template: 'Algoritmo PanaderiaElTrigal\n\tDefinir cafes, panes, total Como Entero;\n\tEscribir "Cantidad de cafes:";\n\tLeer cafes;\n\tEscribir "Cantidad de panes:";\n\tLeer panes;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [2, 3], expectedNumbers: [10400] },
+            { inputs: [1, 1], expectedNumbers: [4300] }
+          ]
+        },
+        {
+          id: 'seq-3',
+          topic: 'secuencial',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '🖥️ Café Internet',
+          title: 'Café Internet y Papelería',
+          description: 'Supón que tienes un café internet donde la hora de navegación cuesta $2,000 y cada hoja impresa cuesta $500. Lee las horas usadas y la cantidad de hojas impresas de un estudiante, y calcula el valor total a pagar.',
+          sampleIn: '3\n6',
+          sampleOut: '9000',
+          hint: 'total <- (horas * 2000) + (hojas * 500);',
+          template: 'Algoritmo CafeInternet\n\tDefinir horas, hojas, total Como Entero;\n\tLeer horas, hojas;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [3, 6], expectedNumbers: [9000] },
+            { inputs: [2, 4], expectedNumbers: [6000] }
+          ]
+        },
+        {
+          id: 'seq-4',
+          topic: 'secuencial',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '🅿️ Parqueadero',
+          title: 'Parqueadero La Estación',
+          description: 'Supón que gestionas un parqueadero que cobra $3,500 por cada hora de estadía. Pide cuántas horas permaneció un carro y muestra el total a pagar.',
+          sampleIn: '4',
+          sampleOut: '14000',
+          hint: 'Define horas, cobro Como Real. Multiplica horas * 3500.',
+          template: 'Algoritmo ParqueaderoEstacion\n\tDefinir horas, cobro Como Real;\n\tLeer horas;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [4], expectedNumbers: [14000] },
+            { inputs: [2], expectedNumbers: [7000] }
+          ]
+        },
+        {
+          id: 'seq-5',
+          topic: 'secuencial',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '💊 Farmacia',
+          title: 'Farmacia SaludTotal (Descuento Tercera Edad)',
+          description: 'Supón que atiendes una farmacia que otorga un 15% de descuento en medicamentos. Lee el valor total de la fórmula médica y muestra primero el valor descontado y luego el total neto a pagar.',
+          sampleIn: '80000',
+          sampleOut: 'Descuento: 12000\nPagar: 68000',
+          hint: 'descuento <- valor * 0.15; pagar <- valor - descuento;',
+          template: 'Algoritmo FarmaciaSaludTotal\n\tDefinir valor, descuento, pagar Como Real;\n\tLeer valor;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [80000], expectedNumbers: [12000, 68000] },
+            { inputs: [40000], expectedNumbers: [6000, 34000] }
+          ]
+        },
+        {
+          id: 'seq-6',
+          topic: 'secuencial',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '🍽️ Restaurante',
+          title: 'Restaurante La Brasa (Cuenta entre Amigos)',
+          description: 'Supón que un grupo de amigos cena en un restaurante. Al consumo se le suma un 10% de propina y el total se divide en partes iguales entre N amigos. Lee el valor del consumo y N, y muestra cuánto debe aportar cada amigo.',
+          sampleIn: '100000\n4',
+          sampleOut: '27500',
+          hint: 'total <- consumo * 1.10; cadaUno <- total / n;',
+          template: 'Algoritmo RestauranteLaBrasa\n\tDefinir consumo, total, cadaUno Como Real;\n\tDefinir n Como Entero;\n\tLeer consumo, n;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [100000, 4], expectedNumbers: [27500] },
+            { inputs: [50000, 2], expectedNumbers: [27500] }
+          ]
+        },
+        {
+          id: 'seq-7',
+          topic: 'secuencial',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '🛠️ Ferretería',
+          title: 'Ferretería El Constructor (Galones de Pintura)',
+          description: 'Supón que en tu ferretería cada galón de pintura cubre exactamente 10 metros cuadrados. Lee el ancho y el alto de una pared (en metros) y calcula cuántos galones necesita el cliente.',
+          sampleIn: '5\n4',
+          sampleOut: '2',
+          hint: 'area <- ancho * alto; galones <- area / 10;',
+          template: 'Algoritmo FerreteriaPintura\n\tDefinir ancho, alto, area, galones Como Real;\n\tLeer ancho, alto;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [5, 4], expectedNumbers: [2] },
+            { inputs: [6, 5], expectedNumbers: [3] }
+          ]
+        },
+        {
+          id: 'seq-8',
+          topic: 'secuencial',
+          level: 'avanzado',
+          kind: 'suposicion',
+          context: '📱 Tienda de Celulares',
+          title: 'Local de Celulares (Comisión y Retención)',
+          description: 'Supón que un asesor de un local de celulares recibe un sueldo base mensual más el 8% de comisión sobre sus ventas del mes, pero del total devengado se le descuenta el 4% por seguridad social. Lee el sueldo base y el valor vendido, y calcula su pago neto.',
+          sampleIn: '1000000\n5000000',
+          sampleOut: '1344000',
+          hint: 'devengado <- base + (ventas * 0.08); neto <- devengado - (devengado * 0.04);',
+          template: 'Algoritmo LocalCelulares\n\tDefinir base, ventas, devengado, neto Como Real;\n\tLeer base, ventas;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [1000000, 5000000], expectedNumbers: [1344000] }
+          ]
+        },
+        {
+          id: 'seq-9',
+          topic: 'secuencial',
+          level: 'avanzado',
+          kind: 'suposicion',
+          context: '🚚 Empresa de Envíos',
+          title: 'Mensajería Rápida (Tarifa por Peso y Distancia)',
+          description: 'Supón que trabajas en una oficina de envíos que cobra $8,000 de tarifa base, más $1,500 por cada kilogramo del paquete y $500 por cada kilómetro de recorrido. Lee el peso (kg) y la distancia (km), y muestra el costo total del envío.',
+          sampleIn: '4\n10',
+          sampleOut: '19000',
+          hint: 'costo <- 8000 + (peso * 1500) + (distancia * 500);',
+          template: 'Algoritmo MensajeriaRapida\n\tDefinir peso, distancia, costo Como Real;\n\tLeer peso, distancia;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [4, 10], expectedNumbers: [19000] },
+            { inputs: [2, 20], expectedNumbers: [21000] }
+          ]
+        },
+        {
+          id: 'seq-10',
+          topic: 'secuencial',
+          level: 'basico',
+          kind: 'clasico',
+          context: '📐 Geometría',
+          title: 'Área y Perímetro de un Terreno Rectangular',
+          description: 'Lee el largo y el ancho de un terreno rectangular y calcula su área (largo * ancho) y su perímetro (2 * (largo + ancho)).',
+          sampleIn: '8\n5',
+          sampleOut: 'Area: 40\nPerimetro: 26',
+          hint: 'Define largo, ancho, area, perimetro Como Real.',
+          template: 'Algoritmo TerrenoRectangular\n\tDefinir largo, ancho, area, perimetro Como Real;\n\tLeer largo, ancho;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [8, 5], expectedNumbers: [40, 26] }
+          ]
+        },
+
+        // ---------- TEMA 2: CONDICIONALES SI / SINO (10 EJERCICIOS) ----------
+        {
+          id: 'cond-1',
+          topic: 'condicional',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '🎬 Cine',
+          title: 'Cine Royal (Precio según Edad)',
+          description: 'Supón que trabajas en la taquilla de un cine. Si el cliente tiene menos de 12 años paga boleta infantil de $8,000; si tiene 12 años o más paga boleta general de $15,000. Lee la edad del cliente y muestra el precio a cobrar.',
+          sampleIn: '9',
+          sampleOut: '8000',
+          hint: 'Si edad < 12 Entonces Escribir 8000; SiNo Escribir 15000; FinSi.',
+          template: 'Algoritmo CineRoyal\n\tDefinir edad Como Entero;\n\tLeer edad;\n\tSi edad < 12 Entonces\n\t\t\n\tSiNo\n\t\t\n\tFinSi\nFinAlgoritmo',
+          testCases: [
+            { inputs: [9], expectedNumbers: [8000] },
+            { inputs: [18], expectedNumbers: [15000] }
+          ]
+        },
+        {
+          id: 'cond-2',
+          topic: 'condicional',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '🛍️ Tienda Virtual',
+          title: 'Tienda Online (Domicilio Gratis)',
+          description: 'Supón que tienes una tienda online: si la compra del cliente es mayor o igual a $100,000 el envío es gratis ($0); de lo contrario se suman $12,000 de domicilio. Lee el valor de la compra y muestra el total final a pagar.',
+          sampleIn: '85000',
+          sampleOut: '97000',
+          hint: 'Si compra >= 100000 Entonces total <- compra; SiNo total <- compra + 12000; FinSi.',
+          template: 'Algoritmo TiendaOnline\n\tDefinir compra, total Como Real;\n\tLeer compra;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [85000], expectedNumbers: [97000] },
+            { inputs: [120000], expectedNumbers: [120000] }
+          ]
+        },
+        {
+          id: 'cond-3',
+          topic: 'condicional',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '💈 Barbería',
+          title: 'Barbería EstiloPro (Tarifa Corte o Combo)',
+          description: 'Supón que en una barbería el servicio tipo 1 (Solo Corte) vale $18,000 y el servicio tipo 2 (Corte + Barba) vale $28,000. Lee el código del servicio (1 o 2) e imprime el valor a cobrar.',
+          sampleIn: '2',
+          sampleOut: '28000',
+          hint: 'Si servicio = 1 Entonces Escribir 18000; SiNo Escribir 28000; FinSi.',
+          template: 'Algoritmo BarberiaEstiloPro\n\tDefinir servicio Como Entero;\n\tLeer servicio;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [1], expectedNumbers: [18000] },
+            { inputs: [2], expectedNumbers: [28000] }
+          ]
+        },
+        {
+          id: 'cond-4',
+          topic: 'condicional',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '🛒 Supermercado',
+          title: 'Supermercado MegaAhorro (Descuento por Cantidad)',
+          description: 'Supón que eres cajero en MegaAhorro: si un cliente lleva más de 10 unidades de un artículo recibe 20% de descuento; si lleva entre 5 y 10 unidades recibe 10%; y si lleva menos de 5 unidades no recibe descuento. Lee la cantidad y el precio unitario, y muestra el total a pagar.',
+          sampleIn: '12\n1000',
+          sampleOut: '9600',
+          hint: 'sub <- cant * precio. Si cant > 10 Entonces total <- sub * 0.80; SiNo Si cant >= 5 Entonces total <- sub * 0.90; SiNo total <- sub; FinSi FinSi.',
+          template: 'Algoritmo MegaAhorro\n\tDefinir cant Como Entero;\n\tDefinir precio, sub, total Como Real;\n\tLeer cant, precio;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [12, 1000], expectedNumbers: [9600] },
+            { inputs: [6, 1000], expectedNumbers: [5400] },
+            { inputs: [3, 1000], expectedNumbers: [3000] }
+          ]
+        },
+        {
+          id: 'cond-5',
+          topic: 'condicional',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '🏋️ Gimnasio',
+          title: 'Gimnasio TitanFit (Planes de Suscripción)',
+          description: 'Supón que atiendes la recepción de un gimnasio con 3 planes: 1 = Mensual ($70,000), 2 = Trimestral ($180,000), 3 = Anual ($600,000). Lee el número del plan elegido y muestra el valor a pagar o "Plan invalido" si escribe otro número.',
+          sampleIn: '2',
+          sampleOut: '180000',
+          hint: 'Puedes usar condicionales Si...SiNo Si... o la estructura Segun plan Hacer.',
+          template: 'Algoritmo GimnasioTitanFit\n\tDefinir plan Como Entero;\n\tLeer plan;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [1], expectedNumbers: [70000] },
+            { inputs: [2], expectedNumbers: [180000] },
+            { inputs: [7], expectedText: ['Plan invalido'] }
+          ]
+        },
+        {
+          id: 'cond-6',
+          topic: 'condicional',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '🎮 Local Videojuegos',
+          title: 'Zona Gamer (Alquiler de Consolas)',
+          description: 'Supón que administras un local de videojuegos: las primeras 2 horas cuestan $6,000 en total (tarifa mínima). Si el jugador se queda más de 2 horas, paga $6,000 más $2,500 por cada hora adicional. Lee las horas jugadas y muestra el total.',
+          sampleIn: '4',
+          sampleOut: '11000',
+          hint: 'Si horas <= 2 Entonces cobro <- 6000; SiNo cobro <- 6000 + ((horas - 2) * 2500); FinSi.',
+          template: 'Algoritmo ZonaGamer\n\tDefinir horas, cobro Como Entero;\n\tLeer horas;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [2], expectedNumbers: [6000] },
+            { inputs: [4], expectedNumbers: [11000] }
+          ]
+        },
+        {
+          id: 'cond-7',
+          topic: 'condicional',
+          level: 'avanzado',
+          kind: 'suposicion',
+          context: '💻 Tienda de Tecnología',
+          title: 'CompuStore (Cliente VIP + Bono Especial)',
+          description: 'Supón que vendes computadores en un local. Lee el precio del equipo y si el cliente tiene tarjeta VIP (1 = Sí, 0 = No). Si es VIP obtiene 15% de descuento sobre el precio. Además, si el precio original supera $3,000,000, se le descuenta un bono adicional de $200,000. Muestra el total final.',
+          sampleIn: '4000000\n1',
+          sampleOut: '3200000',
+          hint: 'total <- precio; Si vip = 1 Entonces total <- total - (precio * 0.15); FinSi; Si precio > 3000000 Entonces total <- total - 200000; FinSi.',
+          template: 'Algoritmo CompuStore\n\tDefinir precio, total Como Real;\n\tDefinir vip Como Entero;\n\tLeer precio, vip;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [4000000, 1], expectedNumbers: [3200000] },
+            { inputs: [2000000, 0], expectedNumbers: [2000000] }
+          ]
+        },
+        {
+          id: 'cond-8',
+          topic: 'condicional',
+          level: 'avanzado',
+          kind: 'suposicion',
+          context: '🍕 Pizzería',
+          title: 'Pizzería Napolitana (Promoción Martes o Domingo)',
+          description: 'Supón que en una pizzería los martes (día = 2) dan 25% de descuento si el consumo es mayor a $50,000, mientras que los domingos (día = 7) cobran un 10% adicional de servicio sobre cualquier consumo. Lee el día (1 a 7) y el valor del consumo, y muestra el total a pagar.',
+          sampleIn: '2\n80000',
+          sampleOut: '60000',
+          hint: 'Si dia = 2 Y consumo > 50000 Entonces total <- consumo * 0.75; SiNo Si dia = 7 Entonces total <- consumo * 1.10; SiNo total <- consumo; FinSi FinSi.',
+          template: 'Algoritmo PizzeriaNapolitana\n\tDefinir dia Como Entero;\n\tDefinir consumo, total Como Real;\n\tLeer dia, consumo;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [2, 80000], expectedNumbers: [60000] },
+            { inputs: [7, 40000], expectedNumbers: [44000] }
+          ]
+        },
+        {
+          id: 'cond-9',
+          topic: 'condicional',
+          level: 'basico',
+          kind: 'clasico',
+          context: '🎓 Calificaciones',
+          title: 'Evaluación de Nota Final',
+          description: 'Lee la nota final de un estudiante (de 0 a 100). Si es mayor o igual a 60 imprime "Aprobado", de lo contrario imprime "Reprobado".',
+          sampleIn: '75',
+          sampleOut: 'Aprobado',
+          hint: 'Si nota >= 60 Entonces Escribir "Aprobado"; SiNo Escribir "Reprobado"; FinSi.',
+          template: 'Algoritmo EvaluarNota\n\tDefinir nota Como Real;\n\tLeer nota;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [75], expectedText: ['Aprobado'] },
+            { inputs: [45], expectedText: ['Reprobado'] }
+          ]
+        },
+        {
+          id: 'cond-10',
+          topic: 'condicional',
+          level: 'intermedio',
+          kind: 'clasico',
+          context: '🔢 Lógica Numérica',
+          title: 'El Mayor de Tres Números',
+          description: 'Lee tres números enteros diferentes y muestra cuál de los tres es el número mayor.',
+          sampleIn: '14\n29\n8',
+          sampleOut: '29',
+          hint: 'Compara Si a > b Y a > c Entonces mayor <- a; SiNo Si b > c Entonces mayor <- b; SiNo mayor <- c; FinSi FinSi.',
+          template: 'Algoritmo MayorDeTres\n\tDefinir a, b, c, mayor Como Entero;\n\tLeer a, b, c;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [14, 29, 8], expectedNumbers: [29] }
+          ]
+        },
+
+        // ---------- TEMA 3: ALGORITMOS REPETITIVOS (10 EJERCICIOS) ----------
+        {
+          id: 'rep-1',
+          topic: 'repetitivo',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '🧾 Caja Registradora',
+          title: 'Caja Registradora Express (Ciclo Para)',
+          description: 'Supón que eres cajero de un minimercado y un cliente pasa N productos por el escáner. Lee N y luego lee el precio de cada uno de los N productos usando un ciclo Para. Al finalizar, muestra el total de la factura.',
+          sampleIn: '3\n2000\n5000\n3000',
+          sampleOut: '10000',
+          hint: 'Inicializa total <- 0 antes del ciclo. Usa Para i <- 1 Hasta n Con Paso 1 Hacer Leer precio; total <- total + precio; FinPara.',
+          template: 'Algoritmo CajaRegistradora\n\tDefinir n, i Como Entero;\n\tDefinir precio, total Como Real;\n\tLeer n;\n\ttotal <- 0;\n\tPara i <- 1 Hasta n Con Paso 1 Hacer\n\t\t\n\tFinPara\n\tEscribir total;\nFinAlgoritmo',
+          testCases: [
+            { inputs: [3, 2000, 5000, 3000], expectedNumbers: [10000] },
+            { inputs: [2, 1500, 2500], expectedNumbers: [4000] }
+          ]
+        },
+        {
+          id: 'rep-2',
+          topic: 'repetitivo',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '📦 Bodega',
+          title: 'Conteo de Inventario en 5 Estantes',
+          description: 'Supón que el encargado de una bodega revisa los 5 estantes del local. Pide cuántas cajas hay en cada uno de los 5 estantes usando un ciclo Para y muestra el total de cajas almacenadas.',
+          sampleIn: '10\n15\n20\n5\n10',
+          sampleOut: '60',
+          hint: 'Usa Para estante <- 1 Hasta 5 Con Paso 1 Hacer Leer cajas; total <- total + cajas; FinPara.',
+          template: 'Algoritmo ConteoBodega\n\tDefinir estante, cajas, total Como Entero;\n\ttotal <- 0;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [10, 15, 20, 5, 10], expectedNumbers: [60] }
+          ]
+        },
+        {
+          id: 'rep-3',
+          topic: 'repetitivo',
+          level: 'basico',
+          kind: 'suposicion',
+          context: '🎟️ Taquilla Teatro',
+          title: 'Cierre de Taquilla (Ciclo Mientras)',
+          description: 'Supón que en la taquilla de un teatro se registran ventas individuales de boletas hasta que el taquillero ingrese 0 para cerrar turno. Lee cada venta y al finalizar muestra el dinero total recaudado.',
+          sampleIn: '15000\n30000\n15000\n0',
+          sampleOut: '60000',
+          hint: 'Lee el primer valor antes de Mientras venta <> 0 Hacer, acumúlalo en total y vuelve a Leer venta al final del Mientras.',
+          template: 'Algoritmo TaquillaTeatro\n\tDefinir venta, total Como Real;\n\ttotal <- 0;\n\tLeer venta;\n\tMientras venta <> 0 Hacer\n\t\t\n\tFinMientras\n\tEscribir total;\nFinAlgoritmo',
+          testCases: [
+            { inputs: [15000, 30000, 15000, 0], expectedNumbers: [60000] }
+          ]
+        },
+        {
+          id: 'rep-4',
+          topic: 'repetitivo',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '👕 Tienda de Ropa',
+          title: 'Control de Stock de Camisetas',
+          description: 'Supón que tu tienda de ropa abre con 50 camisetas en inventario. Mientras haya camisetas disponibles (stock > 0), lee cuántas pide cada cliente: si alcanza el inventario, descuéntalas y escribe el stock restante; si pide más de las que hay, escribe "Stock insuficiente" sin descontar.',
+          sampleIn: '30\n25\n20',
+          sampleOut: '20\nStock insuficiente\n0',
+          hint: 'stock <- 50; Mientras stock > 0 Hacer Leer pedido; Si pedido <= stock Entonces stock <- stock - pedido; Escribir stock; SiNo Escribir "Stock insuficiente"; FinSi FinMientras.',
+          template: 'Algoritmo ControlStock\n\tDefinir stock, pedido Como Entero;\n\tstock <- 50;\n\tMientras stock > 0 Hacer\n\t\tLeer pedido;\n\t\t\n\tFinMientras\nFinAlgoritmo',
+          testCases: [
+            { inputs: [30, 25, 20], expectedText: ['20', 'Stock insuficiente', '0'] }
+          ]
+        },
+        {
+          id: 'rep-5',
+          topic: 'repetitivo',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '🏧 Datáfono / Cajero',
+          title: 'Validación de PIN en Datáfono (Repetir)',
+          description: 'Supón que un cliente intenta pagar con tarjeta en un local (su PIN correcto es 1234). El datáfono repite la lectura del PIN hasta que acierte o agote 3 intentos. Si acierta escribe "Pago aprobado", si falla los 3 intentos escribe "Tarjeta bloqueada".',
+          sampleIn: '1111\n2222\n1234',
+          sampleOut: 'Pago aprobado',
+          hint: 'intentos <- 0; Repetir Leer pin; intentos <- intentos + 1; Hasta Que pin = 1234 O intentos = 3. Luego usa un Si pin = 1234.',
+          template: 'Algoritmo DatafonoLocal\n\tDefinir pin, intentos Como Entero;\n\tintentos <- 0;\n\tRepetir\n\t\tLeer pin;\n\t\tintentos <- intentos + 1;\n\tHasta Que pin = 1234 O intentos = 3\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [1111, 2222, 1234], expectedText: ['Pago aprobado'] },
+            { inputs: [1111, 2222, 3333], expectedText: ['Tarjeta bloqueada'] }
+          ]
+        },
+        {
+          id: 'rep-6',
+          topic: 'repetitivo',
+          level: 'intermedio',
+          kind: 'suposicion',
+          context: '📊 Contabilidad Local',
+          title: 'Balance Semanal de Ventas (7 Días)',
+          description: 'Supón que administras un local comercial y registras las ventas de los 7 días de la semana. Lee las 7 ventas y muestra: el total vendido en la semana, el promedio diario y cuántos días superaron los $200,000.',
+          sampleIn: '150000\n250000\n300000\n100000\n220000\n180000\n200000',
+          sampleOut: 'Total: 1400000\nPromedio: 200000\nDias buenos: 3',
+          hint: 'Usa Para dia <- 1 Hasta 7 Hacer. Acumula total, y si venta > 200000 suma 1 a diasBuenos.',
+          template: 'Algoritmo BalanceSemanal\n\tDefinir dia, diasBuenos Como Entero;\n\tDefinir venta, total, promedio Como Real;\n\ttotal <- 0;\n\tdiasBuenos <- 0;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [150000, 250000, 300000, 100000, 220000, 180000, 200000], expectedNumbers: [1400000, 200000, 3] }
+          ]
+        },
+        {
+          id: 'rep-7',
+          topic: 'repetitivo',
+          level: 'avanzado',
+          kind: 'suposicion',
+          context: '🛒 Gran Supermercado',
+          title: 'Cierre de Caja con Descuento por Línea',
+          description: 'Supón que en un supermercado se registran artículos hasta que el cajero ingrese precio 0. Por cada artículo se lee el precio y la cantidad. Si el subtotal de ese artículo (precio * cantidad) supera $100,000 se le aplica un 10% de descuento antes de sumarlo al total del día. Al cerrar, muestra el total recaudado y el total de unidades vendidas.',
+          sampleIn: '60000\n2\n10000\n3\n0',
+          sampleOut: 'Total: 138000\nUnidades: 5',
+          hint: 'Mientras precio <> 0 Hacer Leer cant; sub <- precio * cant; Si sub > 100000 Entonces sub <- sub * 0.90; FinSi; total <- total + sub; unidades <- unidades + cant; Leer precio; FinMientras.',
+          template: 'Algoritmo CierreCajaSuper\n\tDefinir precio, sub, total Como Real;\n\tDefinir cant, unidades Como Entero;\n\ttotal <- 0;\n\tunidades <- 0;\n\tLeer precio;\n\tMientras precio <> 0 Hacer\n\t\t\n\tFinMientras\n\tEscribir "Total: ", total;\n\tEscribir "Unidades: ", unidades;\nFinAlgoritmo',
+          testCases: [
+            { inputs: [60000, 2, 10000, 3, 0], expectedNumbers: [138000, 5] }
+          ]
+        },
+        {
+          id: 'rep-8',
+          topic: 'repetitivo',
+          level: 'avanzado',
+          kind: 'suposicion',
+          context: '🚀 Emprendimiento',
+          title: 'Meta de Ahorro para Montar un Local',
+          description: 'Supón que un emprendedor tiene un capital inicial, cada mes deposita un ahorro fijo y el banco le suma un 2% de interés mensual sobre el saldo (después de sumar el ahorro del mes). Lee el capital inicial, el ahorro mensual y la meta deseada. Calcula en cuántos meses alcanzará o superará la meta.',
+          sampleIn: '1000\n500\n2600',
+          sampleOut: '3',
+          hint: 'Mientras capital < meta Hacer capital <- (capital + ahorro) * 1.02; meses <- meses + 1; FinMientras.',
+          template: 'Algoritmo MetaEmprendedor\n\tDefinir capital, ahorro, meta Como Real;\n\tDefinir meses Como Entero;\n\tLeer capital, ahorro, meta;\n\tmeses <- 0;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [1000, 500, 2600], expectedNumbers: [3] },
+            { inputs: [2000, 1000, 5000], expectedNumbers: [3] }
+          ]
+        },
+        {
+          id: 'rep-9',
+          topic: 'repetitivo',
+          level: 'basico',
+          kind: 'clasico',
+          context: '✖️ Matemáticas',
+          title: 'Tabla de Multiplicar del 1 al 10',
+          description: 'Lee un número entero N y muestra los 10 primeros resultados de su tabla de multiplicar (N * 1 hasta N * 10) usando un ciclo Para.',
+          sampleIn: '5',
+          sampleOut: '5\n10\n15\n...\n50',
+          hint: 'Para i <- 1 Hasta 10 Con Paso 1 Hacer Escribir n * i; FinPara.',
+          template: 'Algoritmo TablaMultiplicar\n\tDefinir n, i Como Entero;\n\tLeer n;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [5], expectedNumbers: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50] }
+          ]
+        },
+        {
+          id: 'rep-10',
+          topic: 'repetitivo',
+          level: 'intermedio',
+          kind: 'clasico',
+          context: '🔢 Series Numéricas',
+          title: 'Suma de Pares e Impares hasta N',
+          description: 'Lee un número entero positivo N. Recorre los números desde 1 hasta N y muestra primero la suma de los números pares y luego la suma de los números impares.',
+          sampleIn: '6',
+          sampleOut: 'Pares: 12\nImpares: 9',
+          hint: 'Usa el operador MOD: Si i MOD 2 = 0 Entonces sumaPares <- sumaPares + i; SiNo sumaImpares <- sumaImpares + i; FinSi.',
+          template: 'Algoritmo SumaParesImpares\n\tDefinir n, i, sumaPares, sumaImpares Como Entero;\n\tLeer n;\n\tsumaPares <- 0;\n\tsumaImpares <- 0;\n\t\nFinAlgoritmo',
+          testCases: [
+            { inputs: [6], expectedNumbers: [12, 9] }
+          ]
+        }
+      ];
+
+      /**
+       * =========================================================================
+       * 2. ESTADO DE LA APLICACIÓN Y REFERENCIAS AL DOM
+       * =========================================================================
+       */
+      let currentExercise = EXERCISES_DB[0];
+      let solvedIds = new Set();
+      let streakCount = 0;
+      let activeExecution = null;
+
+      const codeTextarea = document.getElementById('code-textarea');
+      const lineNumbersEl = document.getElementById('line-numbers');
+      const diagnosticsListEl = document.getElementById('diagnostics-list');
+      const analyzerBadgeEl = document.getElementById('analyzer-status-badge');
+      const consoleOutputEl = document.getElementById('console-output');
+      const consoleInputForm = document.getElementById('console-input-form');
+      const consoleInputField = document.getElementById('console-input-field');
+      const consolePromptLabel = document.getElementById('console-prompt-label');
+      const variablesTableBody = document.getElementById('variables-table-body');
+      const btnRun = document.getElementById('btn-run');
+      const btnStop = document.getElementById('btn-stop');
+      const btnVerify = document.getElementById('btn-verify');
+      const chkStrictMode = document.getElementById('chk-strict-mode');
+
+      /**
+       * =========================================================================
+       * 3. UTILIDADES DE INTERFAZ (TOASTS, TEMA, LÍNEAS)
+       * =========================================================================
+       */
+      function showToast(message, type) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        const styles = {
+          success: 'bg-emerald-600 text-white border-emerald-400',
+          error: 'bg-rose-600 text-white border-rose-400',
+          info: 'bg-slate-800 text-white border-indigo-400'
+        };
+        toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all duration-300 ${styles[type] || styles.info}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(8px)';
+          setTimeout(() => toast.remove(), 300);
+        }, 3200);
+      }
+
+      function updateLineNumbers() {
+        const lines = codeTextarea.value.split('\n').length;
+        let html = '';
+        for (let i = 1; i <= lines; i++) {
+          html += i + '<br>';
+        }
+        lineNumbersEl.innerHTML = html;
+      }
+
+      function updateCursorPosition() {
+        const pos = codeTextarea.selectionStart || 0;
+        const textBefore = codeTextarea.value.substring(0, pos);
+        const lines = textBefore.split('\n');
+        const line = lines.length;
+        const col = lines[lines.length - 1].length + 1;
+        document.getElementById('cursor-position').textContent = `Línea ${line}, Col ${col}`;
+      }
+
+      function updateStatsUI() {
+        const solvedText = `${solvedIds.size} / ${EXERCISES_DB.length}`;
+        let rank = 'Aprendiz';
+        if (solvedIds.size >= 15) rank = 'Maestro PSeInt';
+        else if (solvedIds.size >= 8) rank = 'Programador Pro';
+        else if (solvedIds.size >= 3) rank = 'Resolutor';
+
+        document.getElementById('stat-solved').textContent = solvedText;
+        document.getElementById('stat-streak').textContent = streakCount;
+        document.getElementById('stat-rank').textContent = rank;
+
+        document.getElementById('stat-solved-mobile').textContent = solvedText;
+        document.getElementById('stat-streak-mobile').textContent = streakCount;
+        document.getElementById('stat-rank-mobile').textContent = rank;
+
+        const solvedBadge = document.getElementById('ex-solved-check');
+        if (solvedIds.has(currentExercise.id)) {
+          solvedBadge.classList.remove('hidden');
+        } else {
+          solvedBadge.classList.add('hidden');
+        }
+      }
+
+      /**
+       * =========================================================================
+       * 4. GENERADOR DE EJERCICIOS Y FILTROS
+       * =========================================================================
+       */
+      function getFilteredExercises() {
+        const topic = document.getElementById('select-topic').value;
+        const level = document.getElementById('select-level').value;
+        const kind = document.getElementById('select-kind').value;
+
+        return EXERCISES_DB.filter(ex => {
+          const okTopic = topic === 'all' || ex.topic === topic;
+          const okLevel = level === 'all' || ex.level === level;
+          const okKind = kind === 'all' || ex.kind === kind;
+          return okTopic && okLevel && okKind;
+        });
+      }
+
+      function updateAvailableBadge() {
+        const pool = getFilteredExercises();
+        document.getElementById('exercise-counter-badge').textContent = `${pool.length} disponibles`;
+      }
+
+      function loadExercise(ex) {
+        currentExercise = ex;
+        const topicLabels = {
+          secuencial: '1. Secuencial',
+          condicional: '2. Condicionales',
+          repetitivo: '3. Repetitivos'
+        };
+        const levelBadges = {
+          basico: { text: '🟢 Básico', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' },
+          intermedio: { text: '🟡 Intermedio', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300' },
+          avanzado: { text: '🔴 Avanzado', cls: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300' }
+        };
+
+        document.getElementById('ex-topic-badge').textContent = topicLabels[ex.topic];
+        document.getElementById('ex-context-badge').textContent = ex.context;
+        const lvlEl = document.getElementById('ex-level-badge');
+        lvlEl.textContent = levelBadges[ex.level].text;
+        lvlEl.className = `text-[11px] font-bold px-2.5 py-0.5 rounded-full ${levelBadges[ex.level].cls}`;
+
+        document.getElementById('ex-title').textContent = ex.title;
+        document.getElementById('ex-description').textContent = ex.description;
+        document.getElementById('ex-sample-in').textContent = ex.sampleIn;
+        document.getElementById('ex-sample-out').textContent = ex.sampleOut;
+        document.getElementById('ex-hint-text').textContent = ex.hint;
+        document.getElementById('ex-hint-box').classList.add('hidden');
+
+        updateStatsUI();
+      }
+
+      function generateRandomExercise(loadTemplateToo) {
+        let pool = getFilteredExercises();
+        if (pool.length === 0) {
+          pool = EXERCISES_DB;
+          showToast('No hay ejercicios con esa combinación exacta; mostrando de todo el banco.', 'info');
+        }
+        document.getElementById('exercise-counter-badge').textContent = `${pool.length} disponibles`;
+
+        const candidates = pool.length > 1 ? pool.filter(ex => ex.id !== currentExercise.id) : pool;
+        const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+        loadExercise(chosen);
+
+        if (loadTemplateToo) {
+          codeTextarea.value = chosen.template;
+          updateLineNumbers();
+          analyzeCode();
+        }
+        showToast(`${chosen.context}: ${chosen.title}`, 'info');
+      }
+
+      /**
+       * =========================================================================
+       * 5. ANALIZADOR ESTÁTICO DE SINTAXIS Y PISTAS INTELIGENTES
+       * =========================================================================
+       */
+      function stripCommentsAndStrings(line) {
+        const noComment = line.replace(/\/\/.*$/, '');
+        return noComment.replace(/"[^"]*"/g, '""');
+      }
+
+      function analyzeCode() {
+        const rawCode = codeTextarea.value;
+        const lines = rawCode.split('\n');
+        const diagnostics = [];
+        const strictMode = chkStrictMode.checked;
+
+        const declaredVars = new Set();
+        const initializedVars = new Set();
+        const blockStack = [];
+        let hasAlgoritmoStart = false;
+        let hasAlgoritmoEnd = false;
+
+        lines.forEach((rawLine, idx) => {
+          const lineNum = idx + 1;
+          const noComment = rawLine.replace(/\/\/.*$/, '').trim();
+          if (!noComment) return;
+
+          // 1. Verificar comillas abiertas sin cerrar
+          const quoteMatches = noComment.match(/"/g);
+          if (quoteMatches && quoteMatches.length % 2 !== 0) {
+            diagnostics.push({
+              type: 'error',
+              line: lineNum,
+              title: 'Comillas dobles sin cerrar',
+              hint: 'Abriste un texto con " pero falta la comilla de cierre " al final de la cadena.'
+            });
+          }
+
+          const clean = stripCommentsAndStrings(noComment).replace(/;$/, '').trim();
+          const lower = clean.toLowerCase();
+
+          // 2. Inicio y fin de Algoritmo / Proceso
+          if (/^(algoritmo|proceso)\b/i.test(clean)) {
+            hasAlgoritmoStart = true;
+            const parts = clean.split(/\s+/);
+            if (parts.length < 2) {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: 'Falta el nombre del Algoritmo',
+                hint: 'Escribe un nombre después de Algoritmo, por ejemplo: Algoritmo MiTienda'
+              });
+            }
+            return;
+          }
+
+          if (/^(finalgoritmo|finproceso)\b/i.test(clean)) {
+            hasAlgoritmoEnd = true;
+            return;
+          }
+
+          if (/^fin\s+(algoritmo|proceso|si|mientras|para|segun)\b/i.test(clean)) {
+            diagnostics.push({
+              type: 'error',
+              line: lineNum,
+              title: 'Palabra de cierre separada con espacio',
+              hint: `En PSeInt las palabras de cierre van juntas sin espacio: FinSi, FinMientras, FinPara, FinSegun o FinAlgoritmo.`
+            });
+          }
+
+          // 3. Declaración Definir
+          const defMatch = clean.match(/^definir\s+(.+)\s+como\s+(entero|real|caracter|cadena|logico)$/i);
+          if (/^definir\b/i.test(clean)) {
+            if (!defMatch) {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: 'Sintaxis incompleta en Definir',
+                hint: 'Usa el formato: Definir var1, var2 Como Entero; (tipos válidos: Entero, Real, Caracter, Cadena, Logico).'
+              });
+            } else {
+              const varsList = defMatch[1].split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+              varsList.forEach(v => declaredVars.add(v));
+            }
+            return;
+          }
+
+          // 4. Estructuras de control
+          if (/^si\b/i.test(clean) && !/^sino\b/i.test(clean)) {
+            if (!/\bentonces$/i.test(clean)) {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: 'Falta la palabra clave "Entonces"',
+                hint: 'Toda condición Si debe terminar con Entonces. Ejemplo: Si edad >= 18 Entonces'
+              });
+            }
+            blockStack.push({ type: 'Si', line: lineNum });
+            return;
+          }
+
+          if (/^sino\s+si\b/i.test(clean)) {
+            if (blockStack.length === 0 || blockStack[blockStack.length - 1].type !== 'Si') {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: '"SiNo Si" fuera de un bloque Si',
+                hint: 'Asegúrate de haber abierto primero un bloque Si ... Entonces.'
+              });
+            }
+            if (!/\bentonces$/i.test(clean)) {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: 'Falta "Entonces" en SiNo Si',
+                hint: 'Completa la línea con Entonces al final.'
+              });
+            }
+            return;
+          }
+
+          if (/^sino$/i.test(clean)) {
+            if (blockStack.length === 0 || blockStack[blockStack.length - 1].type !== 'Si') {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: '"SiNo" sin un "Si" abierto',
+                hint: 'Revisa que no hayas cerrado el Si antes de tiempo o que falte abrir el Si.'
+              });
+            }
+            return;
+          }
+
+          if (/^finsi$/i.test(clean)) {
+            if (blockStack.length === 0 || blockStack[blockStack.length - 1].type !== 'Si') {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: '"FinSi" sobrante o desordenado',
+                hint: 'Hay un FinSi que no corresponde a ningún Si abierto.'
+              });
+            } else {
+              blockStack.pop();
+            }
+            return;
+          }
+
+          if (/^mientras\b/i.test(clean)) {
+            if (!/\bhacer$/i.test(clean)) {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: 'Falta "Hacer" en el ciclo Mientras',
+                hint: 'Escribe: Mientras condicion Hacer'
+              });
+            }
+            blockStack.push({ type: 'Mientras', line: lineNum });
+            return;
+          }
+
+          if (/^finmientras$/i.test(clean)) {
+            if (blockStack.length === 0 || blockStack[blockStack.length - 1].type !== 'Mientras') {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: '"FinMientras" sin "Mientras" abierto',
+                hint: 'Revisa la apertura y cierre de tus ciclos Mientras.'
+              });
+            } else {
+              blockStack.pop();
+            }
+            return;
+          }
+
+          if (/^para\b/i.test(clean)) {
+            if (!/\bhasta\b/i.test(clean) || !/\bhacer$/i.test(clean)) {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: 'Sintaxis incompleta en ciclo Para',
+                hint: 'Formato correcto: Para i <- 1 Hasta 10 Con Paso 1 Hacer'
+              });
+            }
+            const paraVar = clean.match(/^para\s+([a-zA-Z_]\w*)\s*(?:<-|=)/i);
+            if (paraVar) {
+              const vName = paraVar[1].toLowerCase();
+              initializedVars.add(vName);
+              if (strictMode && !declaredVars.has(vName)) {
+                diagnostics.push({
+                  type: 'warning',
+                  line: lineNum,
+                  title: `Variable "${paraVar[1]}" no declarada con Definir`,
+                  hint: `Agrégala arriba: Definir ${paraVar[1]} Como Entero;`
+                });
+              }
+            }
+            blockStack.push({ type: 'Para', line: lineNum });
+            return;
+          }
+
+          if (/^finpara$/i.test(clean)) {
+            if (blockStack.length === 0 || blockStack[blockStack.length - 1].type !== 'Para') {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: '"FinPara" sin "Para" abierto',
+                hint: 'Revisa que cada Para tenga su respectivo FinPara.'
+              });
+            } else {
+              blockStack.pop();
+            }
+            return;
+          }
+
+          if (/^repetir$/i.test(clean)) {
+            blockStack.push({ type: 'Repetir', line: lineNum });
+            return;
+          }
+
+          if (/^hasta\s+que\b/i.test(clean)) {
+            if (blockStack.length === 0 || blockStack[blockStack.length - 1].type !== 'Repetir') {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: '"Hasta Que" sin "Repetir" abierto',
+                hint: 'Un bloque Repetir debe iniciar con la palabra Repetir y terminar con Hasta Que condicion.'
+              });
+            } else {
+              blockStack.pop();
+            }
+            return;
+          }
+
+          if (/^segun\b/i.test(clean)) {
+            blockStack.push({ type: 'Segun', line: lineNum });
+            return;
+          }
+
+          if (/^finsegun$/i.test(clean)) {
+            if (blockStack.length === 0 || blockStack[blockStack.length - 1].type !== 'Segun') {
+              diagnostics.push({
+                type: 'error',
+                line: lineNum,
+                title: '"FinSegun" sin "Segun" abierto',
+                hint: 'Verifica que abriste Segun variable Hacer.'
+              });
+            } else {
+              blockStack.pop();
+            }
+            return;
+          }
+
+          // 5. Leer
+          const leerMatch = clean.match(/^leer\s+(.+)$/i);
+          if (leerMatch) {
+            const vars = leerMatch[1].split(',').map(v => v.trim()).filter(Boolean);
+            vars.forEach(v => {
+              const vLow = v.toLowerCase();
+              initializedVars.add(vLow);
+              if (strictMode && !declaredVars.has(vLow)) {
+                diagnostics.push({
+                  type: 'warning',
+                  line: lineNum,
+                  title: `Variable "${v}" leída sin Definir`,
+                  hint: `Declara "${v}" al inicio del algoritmo usando: Definir ${v} Como Real; (o Entero / Cadena).`
+                });
+              }
+            });
+            return;
+          }
+
+          // 6. Asignaciones (<- o =)
+          const assignMatch = clean.match(/^([a-zA-Z_]\w*)\s*(<-|=)\s*(.+)$/);
+          if (assignMatch && !/^(escribir|leer|definir|si|mientras|para|segun)\b/i.test(clean)) {
+            const targetVar = assignMatch[1];
+            const operator = assignMatch[2];
+            const expr = assignMatch[3];
+            const targetLow = targetVar.toLowerCase();
+
+            if (operator === '=') {
+              diagnostics.push({
+                type: 'info',
+                line: lineNum,
+                title: `Asignación con "=" en "${targetVar}"`,
+                hint: `En PSeInt estándar se recomienda la flecha "<-" para asignar valores: ${targetVar} <- ${expr}`
+              });
+            }
+
+            if (strictMode && !declaredVars.has(targetLow)) {
+              diagnostics.push({
+                type: 'warning',
+                line: lineNum,
+                title: `Variable "${targetVar}" no definida`,
+                hint: `Declara "${targetVar}" al principio con Definir ${targetVar} Como ...`
+              });
+            }
+
+            // Detectar acumulador/contador no inicializado
+            const selfRegex = new RegExp(`\\b${targetVar}\\b`, 'i');
+            if (selfRegex.test(expr) && !initializedVars.has(targetLow)) {
+              diagnostics.push({
+                type: 'warning',
+                line: lineNum,
+                title: `Posible variable "${targetVar}" sin valor inicial`,
+                hint: `Estás usando "${targetVar}" dentro de su propio cálculo antes de darle un valor inicial. Escribe "${targetVar} <- 0;" antes.`
+              });
+            }
+
+            initializedVars.add(targetLow);
+          }
+        });
+
+        if (!hasAlgoritmoStart) {
+          diagnostics.unshift({
+            type: 'error',
+            line: 1,
+            title: 'Falta encabezado "Algoritmo Nombre"',
+            hint: 'Todo pseudocódigo en PSeInt debe comenzar con: Algoritmo NombreDelPrograma'
+          });
+        }
+
+        if (!hasAlgoritmoEnd) {
+          diagnostics.push({
+            type: 'error',
+            line: lines.length,
+            title: 'Falta cierre "FinAlgoritmo"',
+            hint: 'Cierra tu programa escribiendo FinAlgoritmo en la última línea.'
+          });
+        }
+
+        blockStack.forEach(unclosed => {
+          const closeMap = {
+            Si: 'FinSi',
+            Mientras: 'FinMientras',
+            Para: 'FinPara',
+            Repetir: 'Hasta Que <condicion>',
+            Segun: 'FinSegun'
+          };
+          diagnostics.push({
+            type: 'error',
+            line: unclosed.line,
+            title: `Bloque "${unclosed.type}" abierto sin cerrar`,
+            hint: `Abriste "${unclosed.type}" en la línea ${unclosed.line}, pero falta su cierre "${closeMap[unclosed.type]}".`
+          });
+        });
+
+        renderDiagnostics(diagnostics);
+        return diagnostics;
+      }
+
+      function renderDiagnostics(diagnostics) {
+        const errorsCount = diagnostics.filter(d => d.type === 'error').length;
+        const warningsCount = diagnostics.filter(d => d.type === 'warning').length;
+
+        if (errorsCount > 0) {
+          analyzerBadgeEl.textContent = `${errorsCount} error(es)`;
+          analyzerBadgeEl.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300';
+        } else if (warningsCount > 0) {
+          analyzerBadgeEl.textContent = `${warningsCount} aviso(s)`;
+          analyzerBadgeEl.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300';
+        } else {
+          analyzerBadgeEl.textContent = '✓ Sintaxis correcta';
+          analyzerBadgeEl.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300';
+        }
+
+        if (diagnostics.length === 0) {
+          diagnosticsListEl.innerHTML = `
+            <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2.5">
+              <span class="text-base">✨</span>
+              <div>
+                <p class="font-bold">¡Todo se ve muy bien!</p>
+                <p class="mt-0.5 opacity-90">No se detectaron errores de sintaxis. Puedes presionar <strong>"Probar Código"</strong> o <strong>"Validar Solución"</strong>.</p>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        diagnosticsListEl.innerHTML = diagnostics.map(d => {
+          const palette = {
+            error: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-900 dark:text-rose-200',
+            warning: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-200',
+            info: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-900 dark:text-cyan-200'
+          };
+          const icon = d.type === 'error' ? '❌' : (d.type === 'warning' ? '⚠️' : 'ℹ️');
+          return `
+            <div class="p-3 rounded-xl border text-xs ${palette[d.type]}">
+              <div class="flex items-center justify-between gap-2 font-bold">
+                <span>${icon} ${d.title}</span>
+                <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10">Línea ${d.line}</span>
+              </div>
+              <p class="mt-1 opacity-90 leading-relaxed">💡 <strong>Pista:</strong> ${d.hint}</p>
+            </div>
+          `;
+        }).join('');
+      }
+
+      /**
+       * =========================================================================
+       * 6. INTÉRPRETE / MOTOR DE EJECUCIÓN DE PSEINT
+       * =========================================================================
+       */
+      function splitTopLevelCommas(str) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        let depth = 0;
+
+        for (let i = 0; i < str.length; i++) {
+          const ch = str[i];
+          if (ch === '"' && str[i - 1] !== '\\') {
+            inQuotes = !inQuotes;
+            current += ch;
+          } else if (!inQuotes) {
+            if (ch === '(') depth++;
+            else if (ch === ')') depth--;
+            if (ch === ',' && depth === 0) {
+              result.push(current.trim());
+              current = '';
+              continue;
+            }
+            current += ch;
+          } else {
+            current += ch;
+          }
+        }
+        if (current.trim() !== '') result.push(current.trim());
+        return result;
+      }
+
+      function evaluatePSeIntExpression(expr, env) {
+        let jsExpr = '';
+        let i = 0;
+        // Tokenizar respetando cadenas entre comillas
+        while (i < expr.length) {
+          if (expr[i] === '"') {
+            let strLit = '"';
+            i++;
+            while (i < expr.length && expr[i] !== '"') {
+              strLit += expr[i];
+              i++;
+            }
+            strLit += '"';
+            i++;
+            jsExpr += strLit;
+          } else {
+            let chunk = '';
+            while (i < expr.length && expr[i] !== '"') {
+              chunk += expr[i];
+              i++;
+            }
+            // Transformar operadores de PSeInt a JS en fragmentos fuera de comillas
+            chunk = chunk
+              .replace(/<>/g, '!==')
+              .replace(/<=/g, '@@LTE@@')
+              .replace(/>=/g, '@@GTE@@')
+              .replace(/!=/g, '!==')
+              .replace(/==/g, '===')
+              .replace(/=/g, '===')
+              .replace(/@@LTE@@/g, '<=')
+              .replace(/@@GTE@@/g, '>=')
+              .replace(/\^/g, '**')
+              .replace(/\bMOD\b/gi, '%')
+              .replace(/\bY\b/gi, '&&')
+              .replace(/\bO\b/gi, '||')
+              .replace(/\bNO\b/gi, '!')
+              .replace(/\bVerdadero\b/gi, 'true')
+              .replace(/\bFalso\b/gi, 'false')
+              .replace(/\braiz\s*\(/gi, 'Math.sqrt(')
+              .replace(/\brc\s*\(/gi, 'Math.sqrt(')
+              .replace(/\btrunc\s*\(/gi, 'Math.trunc(')
+              .replace(/\bredon\s*\(/gi, 'Math.round(')
+              .replace(/\babs\s*\(/gi, 'Math.abs(')
+              .replace(/\bazar\s*\(/gi, '__azar(');
+
+            // Reemplazar identificadores de variables por acceso seguro al entorno
+            chunk = chunk.replace(/\b([a-zA-Z_]\w*)\b/g, (match, id) => {
+              const low = id.toLowerCase();
+              if (['true', 'false', 'math', 'sqrt', 'trunc', 'round', 'abs', '__azar'].includes(low)) {
+                return match;
+              }
+              return `__getVar("${low}")`;
+            });
+            jsExpr += chunk;
+          }
+        }
+
+        const __getVar = (name) => {
+          if (!(name in env)) {
+            throw new Error(`La variable "${name}" no ha sido inicializada antes de usarse.`);
+          }
+          const val = env[name].value;
+          if (val === undefined || val === null) {
+            throw new Error(`La variable "${name}" no tiene valor asignado.`);
+          }
+          return val;
+        };
+
+        const __azar = (max) => Math.floor(Math.random() * max);
+
+        try {
+          const fn = new Function('__getVar', '__azar', `return (${jsExpr});`);
+          const res = fn(__getVar, __azar);
+          if (typeof res === 'number' && !Number.isFinite(res)) {
+            throw new Error('Operación matemática inválida (posible división por cero).');
+          }
+          return res;
+        } catch (err) {
+          throw new Error(err.message || `Error al evaluar la expresión: ${expr}`);
+        }
+      }
+
+      function parseProgram(rawCode) {
+        const rawLines = rawCode.split('\n');
+        const stmts = [];
+
+        rawLines.forEach((rawLine, idx) => {
+          const lineNum = idx + 1;
+          const clean = rawLine.replace(/\/\/.*$/, '').replace(/;$/, '').trim();
+          if (!clean) return;
+
+          if (/^(algoritmo|proceso|finalgoritmo|finproceso)\b/i.test(clean)) return;
+
+          const defMatch = clean.match(/^definir\s+(.+)\s+como\s+(entero|real|caracter|cadena|logico)$/i);
+          if (defMatch) {
+            const vars = defMatch[1].split(',').map(v => v.trim()).filter(Boolean);
+            stmts.push({ type: 'DEFINIR', vars, varType: defMatch[2], line: lineNum });
+            return;
+          }
+
+          const escMatch = clean.match(/^escribir\s+(.+)$/i);
+          if (escMatch) {
+            let body = escMatch[1].trim();
+            let noNewline = false;
+            if (/^sin\s+saltar\b/i.test(body)) {
+              noNewline = true;
+              body = body.replace(/^sin\s+saltar\b/i, '').trim();
+            } else if (/\bsin\s+saltar$/i.test(body)) {
+              noNewline = true;
+              body = body.replace(/\bsin\s+saltar$/i, '').trim();
+            }
+            stmts.push({ type: 'ESCRIBIR', args: splitTopLevelCommas(body), noNewline, line: lineNum });
+            return;
+          }
+
+          const leerMatch = clean.match(/^leer\s+(.+)$/i);
+          if (leerMatch) {
+            const vars = leerMatch[1].split(',').map(v => v.trim()).filter(Boolean);
+            stmts.push({ type: 'LEER', vars, line: lineNum });
+            return;
+          }
+
+          const siMatch = clean.match(/^si\s+(.+)\s+entonces$/i);
+          if (siMatch && !/^sino\b/i.test(clean)) {
+            stmts.push({ type: 'SI', cond: siMatch[1].trim(), line: lineNum });
+            return;
+          }
+
+          const sinoSiMatch = clean.match(/^sino\s+si\s+(.+)\s+entonces$/i);
+          if (sinoSiMatch) {
+            stmts.push({ type: 'SINOSI', cond: sinoSiMatch[1].trim(), line: lineNum });
+            return;
+          }
+
+          if (/^sino$/i.test(clean)) {
+            stmts.push({ type: 'SINO', line: lineNum });
+            return;
+          }
+
+          if (/^finsi$/i.test(clean)) {
+            stmts.push({ type: 'FINSI', line: lineNum });
+            return;
+          }
+
+          const segunMatch = clean.match(/^segun\s+(.+)\s+hacer$/i);
+          if (segunMatch) {
+            stmts.push({ type: 'SEGUN', expr: segunMatch[1].trim(), line: lineNum });
+            return;
+          }
+
+          if (/^de\s+otro\s+modo\s*:?$/i.test(clean)) {
+            stmts.push({ type: 'DEOTROMODO', line: lineNum });
+            return;
+          }
+
+          if (/^finsegun$/i.test(clean)) {
+            stmts.push({ type: 'FINSEGUN', line: lineNum });
+            return;
+          }
+
+          if (clean.endsWith(':') && !clean.includes('<-')) {
+            stmts.push({ type: 'CASO', expr: clean.slice(0, -1).trim(), line: lineNum });
+            return;
+          }
+
+          const mientrasMatch = clean.match(/^mientras\s+(.+)\s+hacer$/i);
+          if (mientrasMatch) {
+            stmts.push({ type: 'MIENTRAS', cond: mientrasMatch[1].trim(), line: lineNum });
+            return;
+          }
+
+          if (/^finmientras$/i.test(clean)) {
+            stmts.push({ type: 'FINMIENTRAS', line: lineNum });
+            return;
+          }
+
+          if (/^repetir$/i.test(clean)) {
+            stmts.push({ type: 'REPETIR', line: lineNum });
+            return;
+          }
+
+          const hastaMatch = clean.match(/^hasta\s+que\s+(.+)$/i);
+          if (hastaMatch) {
+            stmts.push({ type: 'HASTAQUE', cond: hastaMatch[1].trim(), line: lineNum });
+            return;
+          }
+
+          const paraMatch = clean.match(/^para\s+([a-zA-Z_]\w*)\s*(?:<-|=)\s*(.+)\s+hasta\s+(.+?)(?:\s+con\s+paso\s+(.+?))?\s+hacer$/i);
+          if (paraMatch) {
+            stmts.push({
+              type: 'PARA',
+              varName: paraMatch[1],
+              startExpr: paraMatch[2].trim(),
+              endExpr: paraMatch[3].trim(),
+              stepExpr: paraMatch[4] ? paraMatch[4].trim() : '1',
+              line: lineNum
+            });
+            return;
+          }
+
+          if (/^finpara$/i.test(clean)) {
+            stmts.push({ type: 'FINPARA', line: lineNum });
+            return;
+          }
+
+          const assignMatch = clean.match(/^([a-zA-Z_]\w*)\s*(?:<-|=)\s*(.+)$/);
+          if (assignMatch) {
+            stmts.push({ type: 'ASIGNAR', varName: assignMatch[1], expr: assignMatch[2].trim(), line: lineNum });
+            return;
+          }
+
+          throw new Error(`Línea ${lineNum}: Instrucción no reconocida -> "${clean}"`);
+        });
+
+        // Enlazar saltos de bloques
+        const stack = [];
+        for (let i = 0; i < stmts.length; i++) {
+          const s = stmts[i];
+          if (s.type === 'SI') {
+            stack.push({ type: 'SI', branches: [i] });
+          } else if (s.type === 'SINOSI' || s.type === 'SINO') {
+            const top = stack[stack.length - 1];
+            if (!top || top.type !== 'SI') throw new Error(`Línea ${s.line}: ${s.type} sin Si abierto.`);
+            top.branches.push(i);
+          } else if (s.type === 'FINSI') {
+            const top = stack.pop();
+            if (!top || top.type !== 'SI') throw new Error(`Línea ${s.line}: FinSi sin Si abierto.`);
+            top.branches.push(i);
+            for (let b = 0; b < top.branches.length - 1; b++) {
+              stmts[top.branches[b]].nextBranch = top.branches[b + 1];
+              stmts[top.branches[b]].endIf = i;
+            }
+          } else if (s.type === 'MIENTRAS') {
+            stack.push({ type: 'MIENTRAS', idx: i });
+          } else if (s.type === 'FINMIENTRAS') {
+            const top = stack.pop();
+            if (!top || top.type !== 'MIENTRAS') throw new Error(`Línea ${s.line}: FinMientras sin Mientras.`);
+            stmts[top.idx].endWhile = i;
+            s.startWhile = top.idx;
+          } else if (s.type === 'REPETIR') {
+            stack.push({ type: 'REPETIR', idx: i });
+          } else if (s.type === 'HASTAQUE') {
+            const top = stack.pop();
+            if (!top || top.type !== 'REPETIR') throw new Error(`Línea ${s.line}: Hasta Que sin Repetir.`);
+            s.startRepeat = top.idx;
+          } else if (s.type === 'PARA') {
+            stack.push({ type: 'PARA', idx: i });
+          } else if (s.type === 'FINPARA') {
+            const top = stack.pop();
+            if (!top || top.type !== 'PARA') throw new Error(`Línea ${s.line}: FinPara sin Para.`);
+            stmts[top.idx].endFor = i;
+            s.startFor = top.idx;
+          } else if (s.type === 'SEGUN') {
+            stack.push({ type: 'SEGUN', idx: i, cases: [] });
+          } else if (s.type === 'CASO' || s.type === 'DEOTROMODO') {
+            const top = stack[stack.length - 1];
+            if (!top || top.type !== 'SEGUN') throw new Error(`Línea ${s.line}: Caso fuera de Segun.`);
+            top.cases.push(i);
+          } else if (s.type === 'FINSEGUN') {
+            const top = stack.pop();
+            if (!top || top.type !== 'SEGUN') throw new Error(`Línea ${s.line}: FinSegun sin Segun.`);
+            stmts[top.idx].cases = top.cases;
+            stmts[top.idx].endSegun = i;
+            top.cases.forEach((cIdx, pos) => {
+              stmts[cIdx].nextCase = pos + 1 < top.cases.length ? top.cases[pos + 1] : i;
+              stmts[cIdx].endSegun = i;
+            });
+          }
+        }
+
+        if (stack.length > 0) {
+          const open = stack[stack.length - 1];
+          throw new Error(`El bloque "${open.type}" abierto en la línea ${stmts[open.idx !== undefined ? open.idx : open.branches[0]].line} nunca se cerró.`);
+        }
+
+        return stmts;
+      }
+
+      async function executePSeInt(rawCode, options) {
+        const { interactive, presetInputs, onPrint, onUpdateVars, onRequestInput } = options;
+        const stmts = parseProgram(rawCode);
+        const env = {};
+        const forState = {};
+        const outputs = [];
+        let inputQueue = presetInputs ? [...presetInputs] : [];
+        let pc = 0;
+        let steps = 0;
+        const MAX_STEPS = 12000;
+        let currentLineBuffer = '';
+
+        const flushLine = () => {
+          if (currentLineBuffer !== '') {
+            outputs.push(currentLineBuffer);
+            if (onPrint) onPrint(currentLineBuffer, 'normal');
+            currentLineBuffer = '';
+          }
+        };
+
+        while (pc < stmts.length) {
+          if (activeExecution && activeExecution.cancelled && interactive) {
+            flushLine();
+            if (onPrint) onPrint('⏹ Ejecución detenida por el usuario.', 'warn');
+            return { outputs, env, cancelled: true };
+          }
+
+          steps++;
+          if (steps > MAX_STEPS) {
+            throw new Error('Bucle infinito detectado (más de 12,000 pasos). Revisa la condición de salida de tu ciclo Mientras o Repetir.');
+          }
+
+          const s = stmts[pc];
+
+          try {
+            switch (s.type) {
+              case 'DEFINIR': {
+                s.vars.forEach(v => {
+                  const low = v.toLowerCase();
+                  env[low] = { name: v, type: s.varType, value: undefined };
+                });
+                if (onUpdateVars) onUpdateVars(env);
+                pc++;
+                break;
+              }
+
+              case 'ESCRIBIR': {
+                const pieces = s.args.map(arg => {
+                  const val = evaluatePSeIntExpression(arg, env);
+                  if (typeof val === 'boolean') return val ? 'Verdadero' : 'Falso';
+                  return String(val);
+                });
+                const text = pieces.join('');
+                if (s.noNewline) {
+                  currentLineBuffer += text;
+                } else {
+                  const fullLine = currentLineBuffer + text;
+                  currentLineBuffer = '';
+                  outputs.push(fullLine);
+                  if (onPrint) onPrint(fullLine, 'normal');
+                }
+                pc++;
+                break;
+              }
+
+              case 'LEER': {
+                flushLine();
+                for (const v of s.vars) {
+                  const low = v.toLowerCase();
+                  let rawVal;
+                  if (interactive) {
+                    rawVal = await onRequestInput(v);
+                    if (activeExecution && activeExecution.cancelled) {
+                      return { outputs, env, cancelled: true };
+                    }
+                  } else {
+                    if (inputQueue.length === 0) {
+                      throw new Error(`El programa pidió leer "${v}", pero no hay más datos de prueba.`);
+                    }
+                    rawVal = String(inputQueue.shift());
+                  }
+
+                  const declaredType = env[low] ? env[low].type.toLowerCase() : 'auto';
+                  let parsedVal = rawVal.trim();
+                  if (declaredType === 'entero') {
+                    const num = parseInt(parsedVal, 10);
+                    if (isNaN(num)) throw new Error(`Se esperaba un número Entero para "${v}", pero ingresaste "${rawVal}".`);
+                    parsedVal = num;
+                  } else if (declaredType === 'real') {
+                    const num = parseFloat(parsedVal.replace(',', '.'));
+                    if (isNaN(num)) throw new Error(`Se esperaba un número Real para "${v}", pero ingresaste "${rawVal}".`);
+                    parsedVal = num;
+                  } else if (declaredType === 'logico') {
+                    parsedVal = parsedVal.toLowerCase() === 'verdadero' || parsedVal === '1';
+                  } else if (declaredType === 'auto') {
+                    if (parsedVal !== '' && !isNaN(Number(parsedVal))) {
+                      parsedVal = Number(parsedVal);
+                    }
+                  }
+
+                  if (!env[low]) {
+                    env[low] = { name: v, type: typeof parsedVal === 'number' ? 'Real' : 'Cadena', value: parsedVal };
+                  } else {
+                    env[low].value = parsedVal;
+                  }
+                  if (onUpdateVars) onUpdateVars(env);
+                }
+                pc++;
+                break;
+              }
+
+              case 'ASIGNAR': {
+                const low = s.varName.toLowerCase();
+                let val = evaluatePSeIntExpression(s.expr, env);
+                if (env[low] && env[low].type.toLowerCase() === 'entero' && typeof val === 'number') {
+                  val = Math.trunc(val);
+                }
+                if (!env[low]) {
+                  env[low] = { name: s.varName, type: typeof val === 'number' ? 'Real' : 'Cadena', value: val };
+                } else {
+                  env[low].value = val;
+                }
+                if (onUpdateVars) onUpdateVars(env);
+                pc++;
+                break;
+              }
+
+              case 'SI':
+              case 'SINOSI': {
+                const condVal = Boolean(evaluatePSeIntExpression(s.cond, env));
+                if (condVal) {
+                  pc++;
+                } else {
+                  pc = s.nextBranch;
+                }
+                break;
+              }
+
+              case 'SINO': {
+                // Si llegó aquí ejecutando la rama anterior, salta al FinSi; si saltó aquí desde Si, entra
+                if (pc > 0 && stmts[pc - 1].type !== 'SI' && stmts[pc - 1].type !== 'SINOSI') {
+                  // Veníamos ejecutando instrucciones de la rama verdadera anterior
+                  pc = s.endIf;
+                } else {
+                  pc++;
+                }
+                break;
+              }
+
+              case 'FINSI': {
+                pc++;
+                break;
+              }
+
+              case 'SEGUN': {
+                const targetVal = evaluatePSeIntExpression(s.expr, env);
+                let matchedPc = s.endSegun;
+                for (const cIdx of s.cases) {
+                  const cStmt = stmts[cIdx];
+                  if (cStmt.type === 'DEOTROMODO') {
+                    matchedPc = cIdx + 1;
+                    break;
+                  }
+                  const optionsList = splitTopLevelCommas(cStmt.expr);
+                  const isMatch = optionsList.some(opt => evaluatePSeIntExpression(opt, env) === targetVal);
+                  if (isMatch) {
+                    matchedPc = cIdx + 1;
+                    break;
+                  }
+                }
+                pc = matchedPc;
+                break;
+              }
+
+              case 'CASO':
+              case 'DEOTROMODO': {
+                pc = s.endSegun;
+                break;
+              }
+
+              case 'FINSEGUN': {
+                pc++;
+                break;
+              }
+
+              case 'MIENTRAS': {
+                const condVal = Boolean(evaluatePSeIntExpression(s.cond, env));
+                if (condVal) {
+                  pc++;
+                } else {
+                  pc = s.endWhile + 1;
+                }
+                break;
+              }
+
+              case 'FINMIENTRAS': {
+                pc = s.startWhile;
+                break;
+              }
+
+              case 'REPETIR': {
+                pc++;
+                break;
+              }
+
+              case 'HASTAQUE': {
+                const condVal = Boolean(evaluatePSeIntExpression(s.cond, env));
+                if (condVal) {
+                  pc++;
+                } else {
+                  pc = s.startRepeat + 1;
+                }
+                break;
+              }
+
+              case 'PARA': {
+                const low = s.varName.toLowerCase();
+                if (!forState[pc]) {
+                  const startVal = Number(evaluatePSeIntExpression(s.startExpr, env));
+                  const endVal = Number(evaluatePSeIntExpression(s.endExpr, env));
+                  const stepVal = Number(evaluatePSeIntExpression(s.stepExpr, env));
+                  if (stepVal === 0) throw new Error('El paso en el ciclo Para no puede ser 0.');
+                  forState[pc] = { endVal, stepVal };
+                  if (!env[low]) {
+                    env[low] = { name: s.varName, type: 'Entero', value: startVal };
+                  } else {
+                    env[low].value = startVal;
+                  }
+                } else {
+                  env[low].value += forState[pc].stepVal;
+                }
+                if (onUpdateVars) onUpdateVars(env);
+
+                const cur = env[low].value;
+                const { endVal, stepVal } = forState[pc];
+                const keepGoing = stepVal > 0 ? cur <= endVal : cur >= endVal;
+                if (keepGoing) {
+                  pc++;
+                } else {
+                  delete forState[pc];
+                  pc = s.endFor + 1;
+                }
+                break;
+              }
+
+              case 'FINPARA': {
+                pc = s.startFor;
+                break;
+              }
+
+              default:
+                pc++;
+            }
+          } catch (runtimeErr) {
+            throw new Error(`Línea ${s.line}: ${runtimeErr.message}`);
+          }
+        }
+
+        flushLine();
+        return { outputs, env, cancelled: false };
+      }
+
+      /**
+       * =========================================================================
+       * 7. CONSOLA INTERACTIVA Y VALIDACIÓN DE CASOS DE PRUEBA
+       * =========================================================================
+       */
+      function appendConsoleLine(text, kind) {
+        const line = document.createElement('div');
+        const colors = {
+          normal: 'text-slate-100',
+          system: 'text-cyan-400 font-semibold',
+          input: 'text-amber-300',
+          success: 'text-emerald-400 font-bold',
+          error: 'text-rose-400 font-semibold',
+          warn: 'text-amber-400'
+        };
+        line.className = colors[kind] || colors.normal;
+        line.textContent = text;
+        consoleOutputEl.appendChild(line);
+        consoleOutputEl.scrollTop = consoleOutputEl.scrollHeight;
+      }
+
+      function renderVariablesTable(env) {
+        const keys = Object.keys(env);
+        if (keys.length === 0) {
+          variablesTableBody.innerHTML = `
+            <tr>
+              <td colspan="3" class="py-8 px-3 text-center text-slate-400 font-sans">
+                Aún no hay variables en memoria.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        variablesTableBody.innerHTML = keys.map(k => {
+          const item = env[k];
+          let displayVal = item.value;
+          if (displayVal === undefined) displayVal = '<span class="text-slate-500 italic">sin asignar</span>';
+          else if (typeof displayVal === 'boolean') displayVal = displayVal ? 'Verdadero' : 'Falso';
+          else if (typeof displayVal === 'string') displayVal = `"${displayVal}"`;
+
+          return `
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+              <td class="py-2 px-3 font-bold text-indigo-600 dark:text-cyan-300">${item.name}</td>
+              <td class="py-2 px-3 text-slate-500 dark:text-slate-400">${item.type}</td>
+              <td class="py-2 px-3 font-semibold text-emerald-600 dark:text-emerald-400">${displayVal}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      function requestInteractiveInput(varName) {
+        return new Promise((resolve) => {
+          consolePromptLabel.textContent = `Leer (${varName}) >`;
+          consoleInputForm.classList.remove('hidden');
+          consoleInputField.value = '';
+          consoleInputField.focus();
+
+          const handleSubmit = (e) => {
+            e.preventDefault();
+            const val = consoleInputField.value;
+            consoleInputForm.removeEventListener('submit', handleSubmit);
+            consoleInputForm.classList.add('hidden');
+            appendConsoleLine(`> [${varName}] = ${val}`, 'input');
+            resolve(val);
+          };
+
+          consoleInputForm.addEventListener('submit', handleSubmit);
+        });
+      }
+
+      async function runInteractive() {
+        const diagnostics = analyzeCode();
+        const syntaxErrors = diagnostics.filter(d => d.type === 'error');
+        if (syntaxErrors.length > 0) {
+          consoleOutputEl.innerHTML = '';
+          appendConsoleLine('❌ Corrige los errores de sintaxis señalados antes de ejecutar:', 'error');
+          syntaxErrors.forEach(err => appendConsoleLine(`• Línea ${err.line}: ${err.title}`, 'error'));
+          showToast('Hay errores de sintaxis en tu código.', 'error');
+          return;
+        }
+
+        if (activeExecution) {
+          activeExecution.cancelled = true;
+        }
+        activeExecution = { cancelled: false };
+
+        consoleOutputEl.innerHTML = '';
+        renderVariablesTable({});
+        appendConsoleLine('▶ Ejecutando algoritmo...', 'system');
+
+        btnRun.disabled = true;
+        btnStop.disabled = false;
+
+        try {
+          const result = await executePSeInt(codeTextarea.value, {
+            interactive: true,
+            onPrint: (txt, kind) => appendConsoleLine(txt, kind),
+            onUpdateVars: (env) => renderVariablesTable(env),
+            onRequestInput: requestInteractiveInput
+          });
+
+          if (!result.cancelled) {
+            appendConsoleLine('✓ Ejecución finalizada correctamente.', 'success');
+          }
+        } catch (err) {
+          appendConsoleLine(`❌ Error en tiempo de ejecución: ${err.message}`, 'error');
+          showToast('Error durante la ejecución.', 'error');
+        } finally {
+          consoleInputForm.classList.add('hidden');
+          btnRun.disabled = false;
+          btnStop.disabled = true;
+          activeExecution = null;
+        }
+      }
+
+      async function verifyAgainstTestCases() {
+        const diagnostics = analyzeCode();
+        const syntaxErrors = diagnostics.filter(d => d.type === 'error');
+        if (syntaxErrors.length > 0) {
+          consoleOutputEl.innerHTML = '';
+          appendConsoleLine('❌ No se puede validar porque hay errores de sintaxis:', 'error');
+          syntaxErrors.forEach(err => appendConsoleLine(`• Línea ${err.line}: ${err.title}`, 'error'));
+          showToast('Corrige los errores de sintaxis primero.', 'error');
+          return;
+        }
+
+        consoleOutputEl.innerHTML = '';
+        appendConsoleLine(`🧪 Validando solución para: "${currentExercise.title}"...`, 'system');
+
+        const cases = currentExercise.testCases || [];
+        let passedCount = 0;
+
+        for (let idx = 0; idx < cases.length; idx++) {
+          const tc = cases[idx];
+          try {
+            const res = await executePSeInt(codeTextarea.value, {
+              interactive: false,
+              presetInputs: tc.inputs,
+              onUpdateVars: idx === 0 ? (env) => renderVariablesTable(env) : null
+            });
+
+            const fullOutput = res.outputs.join(' | ');
+            let passed = true;
+
+            if (tc.expectedNumbers) {
+              const extractedNums = (fullOutput.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+              for (const expNum of tc.expectedNumbers) {
+                const found = extractedNums.some(n => Math.abs(n - expNum) < 0.01);
+                if (!found) {
+                  passed = false;
+                  break;
+                }
+              }
+            }
+
+            if (passed && tc.expectedText) {
+              const normOut = fullOutput.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+              for (const expTxt of tc.expectedText) {
+                const normExp = expTxt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                if (!normOut.includes(normExp)) {
+                  passed = false;
+                  break;
+                }
+              }
+            }
+
+            if (passed) {
+              passedCount++;
+              appendConsoleLine(`  ✔ Prueba #${idx + 1} [Entradas: ${tc.inputs.join(', ')}] -> APROBADA`, 'success');
+            } else {
+              const expectedDesc = tc.expectedNumbers ? tc.expectedNumbers.join(', ') : tc.expectedText.join(', ');
+              appendConsoleLine(`  ✘ Prueba #${idx + 1} [Entradas: ${tc.inputs.join(', ')}] -> Se esperaba (${expectedDesc}) pero salió: "${fullOutput || 'nada'}"`, 'error');
+            }
+          } catch (err) {
+            appendConsoleLine(`  ✘ Prueba #${idx + 1} falló por error: ${err.message}`, 'error');
+          }
+        }
+
+        if (passedCount === cases.length && cases.length > 0) {
+          appendConsoleLine('🎉 ¡EXCELENTE! Has resuelto correctamente el ejercicio.', 'success');
+          if (!solvedIds.has(currentExercise.id)) {
+            solvedIds.add(currentExercise.id);
+            streakCount++;
+            updateStatsUI();
+          }
+          showToast('¡Ejercicio completado con éxito! 🎉', 'success');
+        } else {
+          streakCount = 0;
+          updateStatsUI();
+          appendConsoleLine(`⚠️ Pasaste ${passedCount} de ${cases.length} pruebas. Revisa la lógica o consulta la pista.`, 'warn');
+          showToast('Revisa los resultados en la consola.', 'error');
+        }
+      }
+
+      /**
+       * =========================================================================
+       * 8. EVENTOS DE INTERFAZ Y GUÍA DE ESTUDIO
+       * =========================================================================
+       */
+      codeTextarea.addEventListener('input', () => {
+        updateLineNumbers();
+        updateCursorPosition();
+        analyzeCode();
+      });
+
+      codeTextarea.addEventListener('scroll', () => {
+        lineNumbersEl.scrollTop = codeTextarea.scrollTop;
+      });
+
+      codeTextarea.addEventListener('click', updateCursorPosition);
+      codeTextarea.addEventListener('keyup', updateCursorPosition);
+
+      // Soporte de tecla Tab en el editor
+      codeTextarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = codeTextarea.selectionStart;
+          const end = codeTextarea.selectionEnd;
+          codeTextarea.value = codeTextarea.value.substring(0, start) + '\t' + codeTextarea.value.substring(end);
+          codeTextarea.selectionStart = codeTextarea.selectionEnd = start + 1;
+          updateLineNumbers();
+          updateCursorPosition();
+        }
+      });
+
+      // Botones de inserción rápida
+      document.querySelectorAll('.quick-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const snippet = btn.getAttribute('data-insert');
+          const start = codeTextarea.selectionStart;
+          const end = codeTextarea.selectionEnd;
+          codeTextarea.value = codeTextarea.value.substring(0, start) + snippet + codeTextarea.value.substring(end);
+          codeTextarea.focus();
+          codeTextarea.selectionStart = codeTextarea.selectionEnd = start + snippet.length;
+          updateLineNumbers();
+          analyzeCode();
+        });
+      });
+
+      document.getElementById('btn-generate').addEventListener('click', () => generateRandomExercise(false));
+      document.getElementById('select-topic').addEventListener('change', updateAvailableBadge);
+      document.getElementById('select-level').addEventListener('change', updateAvailableBadge);
+      document.getElementById('select-kind').addEventListener('change', updateAvailableBadge);
+      chkStrictMode.addEventListener('change', analyzeCode);
+
+      document.getElementById('btn-toggle-hint').addEventListener('click', () => {
+        document.getElementById('ex-hint-box').classList.toggle('hidden');
+      });
+
+      document.getElementById('btn-load-template').addEventListener('click', () => {
+        codeTextarea.value = currentExercise.template;
+        updateLineNumbers();
+        analyzeCode();
+        showToast('Plantilla cargada en el editor.', 'info');
+      });
+
+      document.getElementById('btn-clear-editor').addEventListener('click', () => {
+        codeTextarea.value = 'Algoritmo MiSolucion\n\t\nFinAlgoritmo';
+        updateLineNumbers();
+        analyzeCode();
+      });
+
+      document.getElementById('btn-clear-console').addEventListener('click', () => {
+        consoleOutputEl.innerHTML = '<div class="text-slate-400 italic">Consola limpia.</div>';
+      });
+
+      btnRun.addEventListener('click', runInteractive);
+      btnVerify.addEventListener('click', verifyAgainstTestCases);
+      btnStop.addEventListener('click', () => {
+        if (activeExecution) {
+          activeExecution.cancelled = true;
+          consoleInputForm.classList.add('hidden');
+          btnRun.disabled = false;
+          btnStop.disabled = true;
+        }
+      });
+
+      // Copiar código al portapapeles
+      document.getElementById('btn-share').addEventListener('click', () => {
+        codeTextarea.select();
+        try {
+          document.execCommand('copy');
+          showToast('¡Código copiado al portapapeles para compartir!', 'success');
+        } catch (err) {
+          showToast('No se pudo copiar automáticamente.', 'error');
+        }
+      });
+
+      // Tema Claro / Oscuro
+      document.getElementById('btn-theme-toggle').addEventListener('click', () => {
+        const htmlEl = document.documentElement;
+        const isDark = htmlEl.classList.toggle('dark');
+        document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+      });
+
+      // Modal Guía de Estudio
+      const guideModal = document.getElementById('guide-modal');
+      document.getElementById('btn-open-guide').addEventListener('click', () => {
+        guideModal.classList.remove('hidden');
+      });
+      document.getElementById('btn-close-guide').addEventListener('click', () => {
+        guideModal.classList.add('hidden');
+      });
+      guideModal.addEventListener('click', (e) => {
+        if (e.target === guideModal) guideModal.classList.add('hidden');
+      });
+
+      // Pestañas de la Guía
+      document.querySelectorAll('.guide-tab').forEach(tabBtn => {
+        tabBtn.addEventListener('click', () => {
+          document.querySelectorAll('.guide-tab').forEach(t => {
+            t.classList.remove('active', 'border-indigo-600', 'text-indigo-600', 'dark:text-indigo-400', 'font-bold');
+            t.classList.add('border-transparent', 'text-slate-500');
+          });
+          tabBtn.classList.add('active', 'border-indigo-600', 'text-indigo-600', 'dark:text-indigo-400', 'font-bold');
+          tabBtn.classList.remove('border-transparent', 'text-slate-500');
+
+          const targetId = tabBtn.getAttribute('data-tab');
+          document.querySelectorAll('.guide-panel').forEach(panel => {
+            panel.classList.toggle('hidden', panel.id !== targetId);
+          });
+        });
+      });
+
+      // Ejemplos ejecutables desde la Guía
+      const GUIDE_EXAMPLES = {
+        secuencial: 'Algoritmo VentaTienda\n\tDefinir precio, descuento, totalPagar Como Real;\n\tEscribir "Ingrese el precio del producto:";\n\tLeer precio;\n\tdescuento <- precio * 0.15;\n\ttotalPagar <- precio - descuento;\n\tEscribir "Descuento (15%): ", descuento;\n\tEscribir "Total a pagar: ", totalPagar;\nFinAlgoritmo',
+        condicional: 'Algoritmo TarifaCine\n\tDefinir edad Como Entero;\n\tEscribir "Ingresa la edad del cliente:";\n\tLeer edad;\n\tSi edad < 12 Entonces\n\t\tEscribir "Boleta Infantil: $8,000";\n\tSiNo Si edad >= 60 Entonces\n\t\tEscribir "Boleta Adulto Mayor: $9,000";\n\tSiNo\n\t\tEscribir "Boleta General: $15,000";\n\tFinSi\nFinAlgoritmo',
+        repetitivo: 'Algoritmo CajaRegistradoraEjemplo\n\tDefinir n, i Como Entero;\n\tDefinir precio, total Como Real;\n\ttotal <- 0;\n\tEscribir "¿Cuántos productos lleva el cliente?";\n\tLeer n;\n\tPara i <- 1 Hasta n Con Paso 1 Hacer\n\t\tEscribir "Precio del producto #", i, ":";\n\t\tLeer precio;\n\t\ttotal <- total + precio;\n\tFinPara\n\tEscribir "Total a pagar: ", total;\nFinAlgoritmo'
+      };
+
+      document.querySelectorAll('.btn-load-example').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-example');
+          if (GUIDE_EXAMPLES[key]) {
+            codeTextarea.value = GUIDE_EXAMPLES[key];
+            updateLineNumbers();
+            analyzeCode();
+            guideModal.classList.add('hidden');
+            showToast('Ejemplo cargado. ¡Presiona "Probar Código" para ejecutarlo!', 'success');
+          }
+        });
+      });
+
+      // Inicialización al cargar la página
+      window.addEventListener('DOMContentLoaded', () => {
+        updateAvailableBadge();
+        loadExercise(EXERCISES_DB[0]);
+        codeTextarea.value = EXERCISES_DB[0].template;
+        updateLineNumbers();
+        analyzeCode();
+      });
+    })();
+  </script>
+</body>
+</html>
